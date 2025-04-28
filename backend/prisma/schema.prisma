@@ -1,0 +1,576 @@
+generator client {
+    provider      = "prisma-client-js"
+    binaryTargets = ["native"]
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model Product {
+    id               String         @id @unique @default(uuid())
+    barcode          String?        @unique
+    order            Int?
+    nameTm           String?
+    nameRu           String?
+    incomePrice      Decimal?
+    sellPrice        Decimal?
+    discountType     DiscountType?
+    discountValue    Decimal?
+    currentSellPrice Decimal?
+    unit             UnitType       @default(Piece)
+    stock            Decimal?
+    Status           ProductStatus? @relation(fields: [productStatusId], references: [id])
+    productStatusId  Int?
+    imageOne         String?
+    imageTwo         String?
+    imageThree       String?
+    imageFour        String?
+    imageFive        String?
+    descriptionTm    String?
+    descriptionRu    String?
+    waitListCount    Decimal?       @default(0)
+    limit            Decimal?
+    isActive         Boolean?       @default(true)
+    isDisabled       Boolean?       @default(false)
+    hashtags         String[]
+    Brand            Brand?         @relation(fields: [brandId], references: [id])
+    brandId          String?
+    Category         Category?      @relation(fields: [categoryId], references: [id])
+    categoryId       String?
+    SubCategory      SubCategory?   @relation(fields: [subCategoryId], references: [id])
+    subCategoryId    String?
+    Segment          Segment?       @relation(fields: [segmentId], references: [id])
+    segmentId        String?
+    Reviews          Review[]
+    OrderItem        OrderItem[]
+    Banner           Banner[]
+    PopUp            PopUp[]
+    Story            Story[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index(fields: [barcode, nameTm, nameRu, currentSellPrice, productStatusId, brandId, categoryId, subCategoryId, segmentId, isDisabled])
+    @@index([brandId])
+    @@index([productStatusId])
+    @@index([categoryId])
+    @@index([subCategoryId])
+    @@index([segmentId])
+    @@index([nameTm])
+    @@index([nameRu])
+    @@index([barcode])
+}
+
+model Brand {
+    id            String        @id @unique @default(uuid())
+    name          String
+    image         String?
+    isActive      Boolean?      @default(true)
+    discountType  DiscountType?
+    discountValue Decimal?
+    Products      Product[]
+    Banner        Banner[]
+    PopUp         PopUp[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    Story     Story[]
+}
+
+model Category {
+    id            String        @id @unique @default(uuid())
+    nameTm        String?
+    nameRu        String?
+    order         Int?
+    image         String?
+    isActive      Boolean?      @default(true)
+    discountType  DiscountType?
+    discountValue Decimal?
+    deliveryPrice Int?
+    Products      Product[]
+    SubCategories SubCategory[]
+    Banner        Banner[]
+    PopUp         PopUp[]
+    Story         Story[]
+}
+
+model SubCategory {
+    id            String        @id @unique @default(uuid())
+    nameTm        String?
+    nameRu        String?
+    order         Int?
+    image         String?
+    isActive      Boolean?      @default(true)
+    discountType  DiscountType?
+    discountValue Decimal?
+    Category      Category      @relation(fields: [categoryId], references: [id])
+    categoryId    String
+    Products      Product[]
+    Segments      Segment[]
+    Banner        Banner[]
+    PopUp         PopUp[]
+    Story         Story[]
+}
+
+model Segment {
+    id            String        @id @unique @default(uuid())
+    nameTm        String?
+    nameRu        String?
+    order         Int?
+    image         String?
+    isActive      Boolean?      @default(true)
+    discountType  DiscountType?
+    discountValue Decimal?
+    SubCategory   SubCategory   @relation(fields: [subCategoryId], references: [id])
+    subCategoryId String
+    Products      Product[]
+    Banner        Banner[]
+    PopUp         PopUp[]
+    Story         Story[]
+}
+
+model ProductStatus {
+    id       Int       @id @unique @default(autoincrement())
+    nameTm   String?
+    nameRu   String?
+    image    String?
+    Products Product[]
+}
+
+model Order {
+    id                     Int                   @id @unique @default(autoincrement())
+    phoneNumber            String?
+    Address                Address?              @relation(fields: [addressId], references: [id])
+    addressId              Int?
+    comment                String?
+    sum                    Decimal?
+    pointsEarned           Decimal               @default(0)
+    payPoints              Decimal               @default(0)
+    isFromSanlyBazar       Boolean?              @default(false)
+    OrderItems             OrderItem[]
+    Customer               Customer?             @relation(fields: [customerId], references: [id])
+    customerId             String?
+    UnRegisteredCustomer   UnRegisteredCustomer? @relation(fields: [unRegisteredCustomerId], references: [id])
+    unRegisteredCustomerId Int?
+    OrderCity              OrderCity?            @relation(fields: [orderCityId], references: [id])
+    orderCityId            Int?
+    OrderTime              OrderTime?            @relation(fields: [orderTimeId], references: [id])
+    orderTimeId            Int?
+    PaymentType            PaymentType?          @relation(fields: [paymentTypeId], references: [id])
+    paymentTypeId          Int?
+    DeliveryType           DeliveryType?         @relation(fields: [deliveryTypeId], references: [id])
+    deliveryTypeId         Int?
+    OrderStatus            OrderStatus?          @relation(fields: [orderStatusId], references: [id])
+    orderStatusId          Int?
+    CourierLang            CourierLang?          @relation(fields: [courierLangId], references: [id])
+    courierLangId          Int?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index(fields: [customerId, unRegisteredCustomerId, orderCityId, orderTimeId, paymentTypeId, deliveryTypeId, orderStatusId, courierLangId, addressId])
+}
+
+model Address {
+    id             Int        @id @default(autoincrement())
+    street         String?
+    house          String?
+    entrance       String?
+    roof           String?
+    room           String?
+    Order          Order[]
+    CustomersOne   Customer[] @relation("AddressOne")
+    CustomersTwo   Customer[] @relation("AddressTwo")
+    CustomersThree Customer[] @relation("AddressThree")
+}
+
+model OrderCity {
+    id       Int      @id @default(autoincrement())
+    nameTm   String?
+    nameRu   String?
+    order    Int?
+    price    Int?
+    isActive Boolean? @default(true)
+    Orders   Order[]
+}
+
+model OrderItem {
+    id               Int      @id @default(autoincrement())
+    Order            Order?   @relation(fields: [orderId], references: [id])
+    orderId          Int?
+    Product          Product? @relation(fields: [productBarcode], references: [barcode])
+    productBarcode   String?
+    quantity         Decimal  @default(1)
+    currentSellPrice Decimal?
+
+    @@index([orderId, productBarcode])
+}
+
+model OrderTime {
+    id       Int        @id @default(autoincrement())
+    nameTm   String?
+    nameRu   String?
+    time     String?
+    limit    Int?
+    isActive Boolean?   @default(true)
+    Orders   Order[]
+    GiftCard GiftCard[]
+}
+
+model PaymentType {
+    id       Int      @id @unique @default(autoincrement())
+    nameTm   String?
+    nameRu   String?
+    isActive Boolean? @default(true)
+    Orders   Order[]
+}
+
+model DeliveryType {
+    id       Int      @id @unique @default(autoincrement())
+    nameTm   String?
+    nameRu   String?
+    isActive Boolean? @default(true)
+    Orders   Order[]
+}
+
+model OrderStatus {
+    id     Int     @id @unique @default(autoincrement())
+    nameTm String?
+    nameRu String?
+    Orders Order[]
+}
+
+model Customer {
+    id           String  @id @unique @default(uuid())
+    phoneNumber  String? @unique
+    email        String? @unique
+    username     String?
+    password     String?
+    pointsEarned Int     @default(0)
+    isBlocked    Boolean @default(false)
+
+    AddressOne     Address? @relation("AddressOne", fields: [addressOneId], references: [id])
+    addressOneId   Int?
+    AddressTwo     Address? @relation("AddressTwo", fields: [addressTwoId], references: [id])
+    addressTwoId   Int?
+    AddressThree   Address? @relation("AddressThree", fields: [addressThreeId], references: [id])
+    addressThreeId Int?
+
+    Orders         Order[]
+    ProductReviews Review[]
+    MarketReview   MarketReview[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([id, phoneNumber, addressOneId, addressTwoId, addressThreeId])
+}
+
+model Review {
+    id             Int       @id @default(autoincrement())
+    rating         Int?
+    comment        String?
+    reply          String?
+    Customer       Customer? @relation(fields: [customerId], references: [id])
+    customerId     String?
+    Product        Product?  @relation(fields: [productBarcode], references: [barcode])
+    productBarcode String?
+    isActive       Boolean   @default(false)
+
+    createdAt DateTime @default(now())
+
+    @@unique([customerId, productBarcode])
+}
+
+model UnRegisteredCustomer {
+    id            Int     @id @default(autoincrement())
+    username      String?
+    phoneNumber   String?
+    userIsBlocked Boolean @default(false)
+    Orders        Order[]
+
+    createdAt DateTime @default(now())
+}
+
+model PopUp {
+    id             Int          @id @unique @default(autoincrement())
+    name           String?
+    link           String?
+    image          String?
+    placeholder    String?
+    video          String?
+    isActive       Boolean?     @default(true)
+    countdown      Int?
+    Product        Product?     @relation(fields: [productBarcode], references: [barcode])
+    productBarcode String?
+    Category       Category?    @relation(fields: [categoryId], references: [id])
+    categoryId     String?
+    SubCategory    SubCategory? @relation(fields: [subCategoryId], references: [id])
+    subCategoryId  String?
+    Segment        Segment?     @relation(fields: [segmentId], references: [id])
+    segmentId      String?
+    Brand          Brand?       @relation(fields: [brandId], references: [id])
+    brandId        String?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([productBarcode, categoryId, subCategoryId, segmentId, brandId])
+}
+
+model Banner {
+    id             Int          @id @unique @default(autoincrement())
+    name           String?
+    link           String?
+    image          String?
+    placeholder    String?
+    video          String?
+    order          Int?
+    startDate      DateTime?
+    endDate        DateTime?
+    isActive       Boolean?     @default(true)
+    Product        Product?     @relation(fields: [productBarcode], references: [barcode])
+    productBarcode String?
+    ProductsArray  String[]
+    Category       Category?    @relation(fields: [categoryId], references: [id])
+    categoryId     String?
+    SubCategory    SubCategory? @relation(fields: [subCategoryId], references: [id])
+    subCategoryId  String?
+    Segment        Segment?     @relation(fields: [segmentId], references: [id])
+    segmentId      String?
+    Brand          Brand?       @relation(fields: [brandId], references: [id])
+    brandId        String?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([productBarcode, categoryId, subCategoryId, segmentId, brandId])
+}
+
+model Story {
+    id             Int          @id @unique @default(autoincrement())
+    name           String?
+    link           String?
+    image          String?
+    placeholder    String?
+    video          String?
+    order          Int?
+    startDate      DateTime?
+    endDate        DateTime?
+    titleTm        String?
+    titleRu        String?
+    contentTm      String?
+    contentRu      String?
+    isActive       Boolean?     @default(true)
+    Product        Product?     @relation(fields: [productBarcode], references: [barcode])
+    productBarcode String?
+    ProductsArray  String[]
+    Category       Category?    @relation(fields: [categoryId], references: [id])
+    categoryId     String?
+    SubCategory    SubCategory? @relation(fields: [subCategoryId], references: [id])
+    subCategoryId  String?
+    Segment        Segment?     @relation(fields: [segmentId], references: [id])
+    segmentId      String?
+    Brand          Brand?       @relation(fields: [brandId], references: [id])
+    brandId        String?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([productBarcode, categoryId, subCategoryId, segmentId, brandId])
+}
+
+model SearchQuery {
+    id    Int     @id @default(autoincrement())
+    query String? @unique
+    count Int     @default(1)
+
+    @@index([query])
+}
+
+model CourierLang {
+    id       Int     @id @default(autoincrement())
+    nameTm   String?
+    nameRu   String?
+    isActive Boolean @default(true)
+    Order    Order[]
+}
+
+model ActionLogs {
+    id                Int         @id @default(autoincrement())
+    role              UserRole?
+    username          String?
+    actionDescription String?
+    actionType        ActionType?
+    createdAt         DateTime    @default(now())
+
+    @@index([role, username, actionType])
+}
+
+model Settings {
+    id                  Int      @id @unique @default(autoincrement())
+    contactNumberOne    String?
+    contactNumberTwo    String?
+    aboutTm             String?
+    aboutRu             String?
+    deliveryInfoTm      String?
+    deliveryInfoRu      String?
+    usageTm             String?
+    usageRu             String?
+    addressTm           String?
+    addressRu           String?
+    instagramOne        String?
+    instagramTwo        String?
+    tiktok              String?
+    imo                 String?
+    email               String?
+    expressPrice        Int?
+    expressInfoTm       String?
+    expressInfoRu       String?
+    pointsPercentage    Decimal?
+    expressIsActive     Boolean  @default(true)
+    pointSystemIsActive Boolean? @default(false)
+    ordersValid         Boolean  @default(true)
+    newVersion          Boolean  @default(false)
+    otpIsActive         Boolean  @default(false)
+    androidVersion      String?
+    iosVersion          String?
+}
+
+model DeviceToken {
+    id        Int      @id @unique @default(autoincrement())
+    token     String   @unique
+    createdAt DateTime @default(now())
+}
+
+model PushNotification {
+    id    Int     @id @unique @default(autoincrement())
+    title String?
+    body  String?
+
+    createdAt DateTime @default(now())
+}
+
+model User {
+    id          String   @id @unique @default(uuid())
+    phoneNumber String?  @unique
+    username    String?
+    password    String
+    Role        UserRole @default(CASHIER)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([id, phoneNumber, username])
+}
+
+model MarketReview {
+    id         Int               @id @default(autoincrement())
+    rating     Int?
+    comment    String?
+    reply      String?
+    Customer   Customer?         @relation(fields: [customerId], references: [id])
+    customerId String?
+    isActive   Boolean           @default(false)
+    ReviewType MarketReviewType?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model Visitor {
+    id        Int      @id @unique @default(autoincrement())
+    type      Boolean
+    createdAt DateTime @default(now())
+}
+
+model OTP {
+    id        Int      @id @unique @default(autoincrement())
+    phone     String
+    message   String?
+    code      Int
+    status    Boolean  @default(false)
+    expiresAt DateTime
+    createdAt DateTime @default(now())
+}
+
+model GiftCard {
+    id                Int              @id @unique @default(autoincrement())
+    code              String           @unique
+    backgroundImage   String?
+    contentText       String?
+    denomination      Int?
+    BackgroundColor   BackgroundColor? @relation(fields: [backgroundColorId], references: [id])
+    backgroundColorId Int?
+    FrontImage        FrontImage?      @relation(fields: [frontImageId], references: [id])
+    frontImageId      Int?
+    Reciever          Reciever?
+    Type              GiftCardType?
+    OrderTime         OrderTime?       @relation(fields: [orderTimeId], references: [id])
+    orderTimeId       Int?
+    wasPaid           Boolean?         @default(false)
+
+    createdAt DateTime @default(now())
+}
+
+model BackgroundColor {
+    id       Int        @id @unique @default(autoincrement())
+    colors   String[]
+    GiftCard GiftCard[]
+}
+
+model FrontImage {
+    id       Int        @id @unique @default(autoincrement())
+    image    String?
+    GiftCard GiftCard[]
+}
+
+enum DiscountType {
+    FIXED
+    PERCENTAGE
+}
+
+enum UnitType {
+    Piece
+    Kg
+    Litre
+}
+
+enum UserRole {
+    ADMIN
+    MANAGER
+    CASHIER
+}
+
+enum MarketReviewType {
+    MARKET
+    PRODUCT
+    DELIVERY
+    OTHERONE
+    OTHERTWO
+    OTHERTHREE
+}
+
+enum ActionType {
+    CREATE
+    UPDATE
+    DELETE
+    VIEW
+    LOGIN
+    LOGOUT
+    OTHERONE
+    OTHERTWO
+    OTHERTHREE
+}
+
+enum GiftCardType {
+    ECARD
+    REALCARD
+}
+
+enum Reciever {
+    CLIENT
+    FRIEND
+}

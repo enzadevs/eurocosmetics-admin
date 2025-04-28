@@ -1,0 +1,21 @@
+.swiper-button-next,
+.swiper-button-prev {
+  color: #ff9700 !important;
+}
+
+.swiper-button-next:after,
+.swiper-button-prev:after {
+  font-size: 20px !important;
+}
+
+.swiper-button-next.swiper-button-disabled,
+.swiper-button-prev.swiper-button-disabled {
+  opacity: 0;
+}
+
+@media screen and (max-width: 768px) {
+  .swiper-button-next:after,
+  .swiper-button-prev:after {
+    display: none;
+  }
+}

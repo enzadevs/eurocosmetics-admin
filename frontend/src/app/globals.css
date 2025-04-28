@@ -1,0 +1,253 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+h1 {
+  @apply font-semibold text-dark dark:text-support text-base md:text-lg;
+}
+
+h2 {
+  @apply font-semibold text-dark dark:text-support text-base;
+}
+
+th {
+  @apply cursor-pointer text-dark dark:text-support text-sm text-left;
+}
+
+tr {
+  @apply h-10;
+}
+
+td {
+  @apply text-sm text-dark dark:text-support;
+}
+
+p {
+  @apply text-dark dark:text-support text-sm md:text-base;
+}
+
+.custom-scrollbar {
+  overflow-x: auto;
+  z-index: 0;
+  &::-webkit-scrollbar {
+    height: 8px;
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    @apply bg-grey-200 rounded;
+  }
+}
+
+input[type="number"] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: textfield;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.input-disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.hide-on-print {
+  @apply bg-support dark:bg-dark border-r border-support-200 dark:border-grey flex flex-col items-center p-2 overflow-y-auto h-full;
+}
+
+.hide-on-print-nav {
+  @apply bg-support dark:bg-dark border-r border-support-200 dark:border-grey center-row gap-2 h-14 w-full;
+}
+
+.unhideout {
+  @apply hidden;
+}
+
+.hideout {
+  @apply flex flex-col gap-2;
+}
+
+/* .unhideout {
+  @apply block;
+}
+
+.hideout {
+  @apply hidden;
+} */
+
+@media print {
+  body {
+    font-size: 12pt;
+    font-smooth: always;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .hide-on-print {
+    display: none !important;
+    width: 0px !important;
+  }
+
+  .margin-onprint {
+    margin: 0px !important;
+  }
+
+  .hide-on-print-nav {
+    display: none !important;
+  }
+
+  .hideout {
+    display: none !important;
+  }
+
+  .unhideout {
+    @apply flex flex-col;
+  }
+
+  .visible-on-print {
+    @apply flex;
+  }
+
+  @page {
+    size: auto;
+    margin: 10mm;
+  }
+}
+
+.center-col {
+  @apply flex flex-col items-center justify-center;
+}
+
+.center-row {
+  @apply flex flex-row items-center;
+}
+
+.text-links {
+  @apply text-dark dark:text-support transition-all duration-100 hover:text-primary;
+}
+
+.basic-border {
+  @apply border border-support-200 dark:border-grey-700 rounded;
+}
+
+.basic-border-2 {
+  @apply border-2 border-support-200 dark:border-grey-700 rounded;
+}
+
+.input-primary {
+  @apply bg-white dark:bg-darkTwo rounded text-dark placeholder:text-grey outline-none text-sm md:text-base transition-all ring-1 ring-support-200 ring-inset focus:ring-2 focus:ring-primary h-9 md:h-10 w-full;
+}
+
+.btn-primary {
+  @apply bg-primary border-2 border-primary rounded outline-0 font-medium text-white transition-all hover:bg-white dark:hover:bg-darkTwo hover:text-primary h-9 md:h-10;
+}
+
+.btn-grey {
+  @apply bg-white dark:bg-darkTwo border-2 rounded flex items-center justify-center gap-2 text-dark dark:text-support dark:hover:text-dark transition hover:bg-grey-200 hover:border-grey-500 h-9 md:h-10;
+}
+
+.btn-success {
+  @apply bg-white dark:bg-darkTwo border-2 rounded flex items-center justify-center gap-2 text-dark dark:text-support dark:hover:text-dark transition hover:bg-green-300 hover:border-green-500 h-9 md:h-10;
+}
+
+.btn-blue {
+  @apply bg-white dark:bg-darkTwo border-2 rounded flex items-center justify-center gap-2 text-dark dark:text-support dark:hover:text-dark transition hover:bg-blue-300 hover:border-blue-500 h-9 md:h-10;
+}
+
+.btn-warning {
+  @apply bg-white dark:bg-darkTwo border-2 rounded flex items-center justify-center gap-2 text-dark dark:text-support dark:hover:text-dark transition hover:bg-yellow-300 hover:border-yellow-500 h-9 md:h-10;
+}
+
+.btn-danger {
+  @apply bg-white dark:bg-darkTwo border-2 rounded flex items-center justify-center gap-2 text-dark dark:text-support dark:hover:text-dark transition hover:bg-red-300 hover:border-red-500 h-9 md:h-10;
+}
+
+.index-button {
+  @apply basic-border rounded flex flex-row items-center dark:text-support gap-2 md:gap-4 transition hover:bg-support dark:hover:bg-darkTwo p-2 h-24 md:h-32 w-auto;
+}
+
+.input-primary {
+  @apply basic-border text-dark outline-none text-sm md:text-base transition-all focus:border-primary h-9 md:h-10 w-full;
+}
+
+.drawer-button {
+  @apply bg-white dark:bg-darkTwo basic-border flex flex-row items-center text-sm text-dark dark:text-support transition hover:text-primary min-h-10;
+}
+
+.drawer-button-small {
+  @apply bg-white dark:bg-darkTwo basic-border center-col text-dark dark:text-support transition hover:text-primary min-h-9 min-w-9 md:min-h-10 md:min-w-10;
+}
+
+.btn-small {
+  @apply bg-white dark:bg-darkTwo text-dark dark:text-support basic-border center-col hover:text-primary h-9 w-9 md:h-10 md:w-10;
+}
+
+.btn-small-2 {
+  @apply bg-white dark:bg-darkTwo basic-border flex flex-row items-center text-dark dark:text-support transition hover:text-primary px-2 h-9 md:h-10;
+}
+
+.btn-small-2.active {
+  @apply bg-primary border-primary text-white;
+}
+
+.btn-small-2:disabled {
+  @apply bg-support dark:bg-darkTwo text-dark dark:text-support cursor-not-allowed;
+}
+
+.combo {
+  @apply bg-white dark:bg-dark basic-border rounded transition duration-100 ease-in data-[leave]:data-[closed]:opacity-0 [--anchor-gap:var(--spacing-2)] empty:invisible p-1 w-[var(--input-width)];
+}
+
+.combo-option {
+  @apply dark:bg-darkTwo flex cursor-pointer items-center gap-2 rounded text-dark dark:text-support select-none data-[focus]:bg-primary data-[focus]:text-white px-2 min-h-9 md:min-h-10 h-fit;
+}
+
+.custom-file-input {
+  @apply bg-white dark:bg-dark basic-border shadow text-primary file:cursor-pointer file:rounded-l file:border-0 file:text-sm file:bg-primary file:text-white file:px-2 file:h-10 h-10 w-full;
+}
+
+.custom-file-input-2 {
+  @apply bg-white dark:bg-darkTwo basic-border text-primary file:cursor-pointer file:rounded-l file:border-0 file:text-sm file:bg-primary file:text-white file:px-1 file:h-9 h-9 w-full opacity-0 absolute inset-0 z-10;
+}
+
+.file-input-label {
+  @apply bg-white dark:bg-darkTwo basic-border center-col text-primary cursor-pointer text-xs md:text-sm h-9 w-full;
+}
+
+.custom-file-input-2:focus + .file-input-label {
+  @apply outline-none ring-2 ring-primary ring-opacity-50;
+}
+
+.short-sum-box {
+  @apply bg-white dark:bg-dark basic-border shadow-md center-row transition hover:border-primary h-20 lg:h-32 w-full;
+}
+
+.chart-box {
+  @apply bg-white dark:bg-darkTwo basic-border shadow-md flex flex-col gap-4 transition hover:border-primary min-h-[360px] w-full;
+}
+
+.form-holder {
+  @apply border-0 md:border border-support-200 rounded flex flex-col gap-1 px-1 md:p-2 w-full;
+}
+
+.switch-container {
+  @apply relative flex cursor-pointer rounded-full bg-support-100 transition-colors p-[2px] duration-200 ease-in-out focus:outline-none data-[focus]:outline-1 data-[focus]:outline-primary data-[checked]:bg-primary ml-auto h-5 w-10;
+}
+
+.switch {
+  @apply pointer-events-none inline-block size-4 translate-x-0 rounded-full bg-white ring-0 shadow-lg transition duration-200 ease-in-out group-data-[checked]:translate-x-5;
+}

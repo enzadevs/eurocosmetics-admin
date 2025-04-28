@@ -1,0 +1,94 @@
+import { apiUrl } from "@/components/utils/utils";
+import { useState, useEffect } from "react";
+import {
+  Combobox,
+  ComboboxButton,
+  ComboboxInput,
+  ComboboxOption,
+  ComboboxOptions,
+} from "@headlessui/react";
+import { ChevronDown, Check } from "lucide-react";
+
+const fetchCategories = async () => {
+  const response = await fetch(`${apiUrl}/categories/fetch/all`);
+  const data = await response.json();
+  return data.categories;
+};
+
+export default function CategorySelectorS({ categoryIdRef, data }) {
+  const [categories, setCategories] = useState([]);
+  const [query, setQuery] = useState("");
+  const [comboboxSelectedItem, setComboboxSelectedItem] = useState(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState(
+    categoryIdRef.current
+  );
+
+  useEffect(() => {
+    const getCategories = async () => {
+      const fetchedCategories = await fetchCategories();
+      const allOption = { id: 0, nameRu: "Все" };
+      const allCategories = data
+        ? fetchedCategories
+        : [allOption, ...fetchedCategories];
+
+      setCategories(allCategories);
+
+      if (data) {
+        setComboboxSelectedItem(data);
+        categoryIdRef.current = data?.id;
+      } else {
+        setComboboxSelectedItem(null);
+        categoryIdRef.current = allOption.id;
+      }
+    };
+
+    getCategories();
+  }, [data, categoryIdRef]);
+
+  const handleSelectChange = (value) => {
+    setComboboxSelectedItem(value);
+    setSelectedCategoryId(value?.id || null);
+    categoryIdRef.current = value?.id || null;
+  };
+
+  const filteredCategories =
+    query === ""
+      ? categories
+      : categories.filter((category) =>
+          category.nameRu.toLowerCase().includes(query.toLowerCase())
+        );
+
+  return (
+    <div className="flex items-center justify-between h-9 md:h-10 w-full">
+      <Combobox
+        value={comboboxSelectedItem}
+        onChange={handleSelectChange}
+        onClose={() => setQuery("")}
+      >
+        <div className="relative w-full">
+          <ComboboxInput
+            className="dark:bg-dark basic-border-2 dark:text-support focus:border-primary outline-none pl-2 pr-9 h-9 md:h-10 w-full"
+            displayValue={(category) => category?.nameRu}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Категория"
+          />
+          <ComboboxButton className="center-col absolute inset-y-0 text-dark hover:text-primary h-full w-full">
+            <ChevronDown className="ml-auto mr-2 size-5" />
+          </ComboboxButton>
+        </div>
+        <ComboboxOptions anchor="bottom" transition className="combo">
+          {filteredCategories.map((category) => (
+            <ComboboxOption
+              key={category.id}
+              value={category}
+              className="group combo-option"
+            >
+              <Check className="invisible size-4 group-data-[selected]:visible" />
+              <span className="text-sm md:text-base">{category.nameRu}</span>
+            </ComboboxOption>
+          ))}
+        </ComboboxOptions>
+      </Combobox>
+    </div>
+  );
+}
