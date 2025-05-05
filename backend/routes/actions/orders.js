@@ -1059,18 +1059,8 @@ const deleteAllOrders = asyncHandler(async (req, res) => {
 
 const fetchOrderById = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const glutenCategoryId = "6518dba0-f9c4-4264-9fa9-4f37c49ca328";
 
   try {
-    const glutenCategory = await prisma.category.findUnique({
-      where: {
-        id: glutenCategoryId,
-      },
-      select: {
-        deliveryPrice: true,
-      },
-    });
-
     const order = await prisma.order.findUnique({
       where: { id: Number(id) },
       include: {
@@ -1126,17 +1116,6 @@ const fetchOrderById = asyncHandler(async (req, res) => {
       createdAt: new Date(order.createdAt).toLocaleString("en-GB", timeFormat),
       updatedAt: new Date(order.updatedAt).toLocaleString("en-GB", timeFormat),
     };
-
-    // const hasGlutenProduct = order?.OrderItems?.some(
-    //   (item) => item?.Product?.Category.id === glutenCategoryId
-    // );
-    const hasGlutenProduct = order?.OrderItems?.some(
-      (item) => item?.Product?.Category?.id === glutenCategoryId
-    );
-
-    if (hasGlutenProduct && glutenCategory) {
-      orderWithUserData.glutenDeliveryPrice = glutenCategory.deliveryPrice;
-    }
 
     res.status(200).json({ order: orderWithUserData });
   } catch (err) {

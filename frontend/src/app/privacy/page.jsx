@@ -5,7 +5,7 @@ export default function PrivacyPolicyPage() {
     <>
       <div className="bg-support-100 rounded-lg flex flex-col text-center gap-2 p-4 m-8">
         <h2>Политика конфиденциальности</h2>
-        <h2>Дата вступления в силу: 01.12.2024</h2>
+        <h2>Дата вступления в силу: 01.05.2025</h2>
         <p>
           1.Введение. Добро пожаловать в Euro Cosmetics. Мы ценим вашу
           конфиденциальность и стремимся защитить ваши личные данные. Эта
@@ -55,7 +55,7 @@ export default function PrivacyPolicyPage() {
       </div>
       <div className="bg-support-100 rounded-lg flex flex-col text-center gap-2 p-4 m-8 mt-2">
         <h2>Privacy Policy</h2>
-        <h2>Effective Date: 01.12.2024</h2>
+        <h2>Effective Date: 01.05.2025</h2>
         <p>
           1. Introduction. Welcome to Euro Cosmetics. We value your privacy and
           are committed to protecting your personal data. This Privacy Policy

@@ -13,7 +13,7 @@ const upload = multerStorage({ storage: storage });
 const optimizeAndSaveImage = async (buffer, filename) => {
   const optimizedImagePath = join("uploads/popup/", filename);
   await sharp(buffer, { failOnError: false })
-    .resize(800)
+    .resize(1000)
     .jpeg({ quality: 97 })
     .toFile(optimizedImagePath);
   return optimizedImagePath;

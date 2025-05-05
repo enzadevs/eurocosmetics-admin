@@ -106,7 +106,6 @@ export default function CategoriesTable() {
                 </th>
                 <th className="text-xs md:text-sm">Имя (ру.)</th>
                 <th className="text-xs md:text-sm">Имя (ткм.)</th>
-                <th className="text-xs md:text-sm">Цена доставки</th>
                 <th className="text-xs md:text-sm">Активна</th>
               </tr>
             </thead>
@@ -137,11 +136,12 @@ export default function CategoriesTable() {
                   <td className="text-xs md:text-sm">{row.order}</td>
                   <td className="text-left text-xs md:text-sm">{row.nameRu}</td>
                   <td className="text-left text-xs md:text-sm">{row.nameTm}</td>
-                  <td className="text-left text-xs md:text-sm">
-                    {row.deliveryPrice ? row.deliveryPrice : "0"} M
-                  </td>
-                  <td className="text-left text-xs md:text-sm">
-                    {row.isActive === true ? "Да" : "Нет"}
+                  <td
+                    className={`font-bold text-left text-xs md:text-sm ${
+                      row?.isActive ? "text-green-600" : "text-orange-500"
+                    }`}
+                  >
+                    {row?.isActive === true ? "Да" : "Нет"}
                   </td>
                 </tr>
               ))}

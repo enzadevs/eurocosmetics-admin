@@ -45,6 +45,16 @@ export default function NewAdPage() {
       return;
     }
 
+    if (!data.startDate) {
+      ErrorToast({ errorText: "Пожалуйста, введите дату начала." });
+      return;
+    }
+
+    if (!data.endDate) {
+      ErrorToast({ errorText: "Пожалуйста, введите дату окончания." });
+      return;
+    }
+
     if (!selectedImage) {
       ErrorToast({ errorText: "Пожалуйста, загрузите изображение." });
       return;
@@ -56,6 +66,8 @@ export default function NewAdPage() {
       formData.append("order", data.order);
       formData.append("isActive", isActive);
       formData.append("image", selectedImage);
+      formData.append("startDate", data.startDate);
+      formData.append("endDate", data.endDate);
       if (productsArray) {
         let productsArrayFormatted;
 
@@ -176,6 +188,32 @@ export default function NewAdPage() {
                 defaultValue=""
                 placeholder="Номер"
                 {...register("order")}
+              />
+            </div>
+            <div className="center-row gap-1 w-full">
+              <p className="min-w-24 md:min-w-32">
+                <span className="text-red-500 font-bold">* </span>
+                Дата начала:
+              </p>
+              <input
+                type="date"
+                className="input-primary px-2 w-full"
+                defaultValue=""
+                placeholder="Дата начала"
+                {...register("startDate")}
+              />
+            </div>
+            <div className="center-row gap-1 w-full">
+              <p className="min-w-24 md:min-w-32">
+                <span className="text-red-500 font-bold">* </span>Дата
+                окончания:
+              </p>
+              <input
+                type="date"
+                className="input-primary px-2 w-full"
+                defaultValue=""
+                placeholder="Дата окончания"
+                {...register("endDate")}
               />
             </div>
             <div className="bg-blue-200 dark:bg-dark rounded p-2 w-full">

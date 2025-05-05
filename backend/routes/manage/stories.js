@@ -11,29 +11,29 @@ const storage = multer.memoryStorage();
 const upload = multerStorage({ storage: storage });
 
 const optimizeAndSaveImage = async (buffer, filename) => {
-  const optimizedImagePath = join("uploads/banner/", filename);
+  const optimizedImagePath = join("uploads/stories/", filename);
   await sharp(buffer, { failOnError: false })
-    .resize(2000)
+    .resize(1000)
     .jpeg({ quality: 97 })
     .toFile(optimizedImagePath);
   return optimizedImagePath;
 };
 
-const fetchAllBanners = asyncHandler(async (req, res) => {
+const fetchAllStories = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10 } = req.body;
 
   try {
-    const bannersCount = await prisma.banner.count();
-    const totalPages = Math.ceil(bannersCount / limit);
+    const storyCount = await prisma.story.count();
+    const totalPages = Math.ceil(storyCount / limit);
     const currentPage = Math.max(1, Math.min(page, totalPages));
 
-    const banners = await prisma.banner.findMany({
+    const stories = await prisma.story.findMany({
       skip: (currentPage - 1) * limit,
       take: limit,
-      orderBy: { order: "asc" },
+      orderBy: { updatedAt: "desc" },
     });
 
-    const formattedBanners = banners.map((item) => {
+    const formattedStories = stories.map((item) => {
       const formattedCreatedAt = new Date(item.createdAt).toLocaleString(
         "en-GB",
         timeFormat
@@ -51,7 +51,7 @@ const fetchAllBanners = asyncHandler(async (req, res) => {
     });
 
     res.status(200).json({
-      banners: formattedBanners,
+      stories: formattedStories,
       pagination: {
         currentPage,
         totalPages,
@@ -62,111 +62,71 @@ const fetchAllBanners = asyncHandler(async (req, res) => {
   }
 });
 
-const fetchActiveBanners = asyncHandler(async (req, res) => {
+const fetchActiveStories = asyncHandler(async (req, res) => {
   try {
-    const banners = await prisma.banner.findMany({
+    const stories = await prisma.story.findMany({
       where: {
         isActive: true,
-        startDate: { lte: new Date() },
-        endDate: { gte: new Date() },
       },
-      orderBy: { order: "asc" },
+      orderBy: { updatedAt: "desc" },
       include: {
         Product: true,
         Category: true,
         SubCategory: true,
         Segment: true,
+        Brand: true,
       },
     });
 
-    const formattedBanners = banners.map((banner) => {
-      const formattedCreatedAt = new Date(banner.createdAt).toLocaleString(
+    const formattedStories = stories.map((item) => {
+      const formattedCreatedAt = new Date(item.createdAt).toLocaleString(
         "en-GB",
         timeFormat
       );
-      const formattedUpdatedAt = new Date(banner.updatedAt).toLocaleString(
+      const formattedUpdatedAt = new Date(item.updatedAt).toLocaleString(
         "en-GB",
         timeFormat
       );
 
       return {
-        ...banner,
+        ...item,
         createdAt: formattedCreatedAt,
         updatedAt: formattedUpdatedAt,
       };
     });
 
-    res.status(200).json({ banners: formattedBanners });
+    res.status(200).json({ stories: formattedStories });
   } catch (err) {
     res.status(500).send("Ошибка при получении данных.");
   }
 });
 
-const fetchBannerById = asyncHandler(async (req, res) => {
+const fetchStoryByID = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
   try {
-    const banner = await prisma.banner.findUnique({
+    const story = await prisma.story.findUnique({
       where: { id: Number(id) },
       include: {
         Product: true,
         Category: true,
         SubCategory: true,
         Segment: true,
+        Brand: true,
       },
     });
 
-    if (!banner) {
-      return res.status(404).json({ message: "Баннер не найден." });
+    if (!story) {
+      return res.status(404).json({ message: "Stories не найден." });
     }
 
-    let arrayOfProducts = [];
-    if (banner.ProductsArray && banner.ProductsArray.length > 0) {
-      arrayOfProducts = await prisma.product.findMany({
-        where: {
-          barcode: {
-            in: banner.ProductsArray,
-          },
-        },
-        select: {
-          id: true,
-          barcode: true,
-          nameTm: true,
-          nameRu: true,
-          sellPrice: true,
-          currentSellPrice: true,
-          discountType: true,
-          discountValue: true,
-          unit: true,
-          Status: {
-            select: {
-              id: true,
-              nameRu: true,
-              nameTm: true,
-            },
-          },
-          stock: true,
-          imageOne: true,
-          limit: true,
-        },
-      });
-    }
-
-    const result = {
-      ...banner,
-      arrayOfProducts,
-    };
-
-    res.status(200).json(result);
+    res.status(200).json(story);
   } catch (err) {
-    console.error("Error fetching banner:", err);
-    res
-      .status(500)
-      .json({ message: "Ошибка при получении данных.", error: err.message });
+    res.status(500).send("Ошибка при получении данных.");
   }
 });
 
-const newBanner = asyncHandler(async (req, res) => {
+const newStory = asyncHandler(async (req, res) => {
   const {
     name,
     order,
@@ -177,6 +137,7 @@ const newBanner = asyncHandler(async (req, res) => {
     subCategoryId,
     segmentId,
     productBarcode,
+    brandId,
     productsArray = [],
   } = req.body;
 
@@ -186,94 +147,95 @@ const newBanner = asyncHandler(async (req, res) => {
     getNullOrValue(productBarcode) ||
     getNullOrValue(categoryId) ||
     getNullOrValue(subCategoryId) ||
-    getNullOrValue(segmentId);
+    getNullOrValue(segmentId) ||
+    getNullOrValue(brandId);
 
   let url = idToInclude ? idToInclude : null;
 
-  let bannerImage = null;
+  let storyImage = null;
 
   if (req.file) {
     const fileExtension = extname(req.file.originalname);
     const filename = `${Date.now()}${fileExtension}`;
-    bannerImage = await optimizeAndSaveImage(req.file.buffer, filename);
+    storyImage = await optimizeAndSaveImage(req.file.buffer, filename);
   }
 
-  let bannerData = {
+  let storyData = {
     name: name,
     order: Number(order),
     isActive: JSON.parse(isActive),
     ProductsArray: JSON.parse(productsArray),
     link: url,
-    image: bannerImage,
+    image: storyImage,
     startDate: new Date(startDate) || null,
     endDate: new Date(endDate) || null,
   };
 
   if (productBarcode && productBarcode !== "null")
-    bannerData.Product = { connect: { barcode: productBarcode } };
+    storyData.Product = { connect: { barcode: productBarcode } };
   if (categoryId && categoryId !== "null")
-    bannerData.Category = { connect: { id: categoryId } };
+    storyData.Category = { connect: { id: categoryId } };
   if (subCategoryId && subCategoryId !== "null")
-    bannerData.SubCategory = { connect: { id: subCategoryId } };
+    storyData.SubCategory = { connect: { id: subCategoryId } };
   if (segmentId && segmentId !== "null")
-    bannerData.Segment = { connect: { id: segmentId } };
+    storyData.Segment = { connect: { id: segmentId } };
+  if (brandId && brandId !== "null")
+    storyData.Brand = { connect: { id: brandId } };
 
   try {
-    await prisma.banner.create({ data: bannerData });
+    await prisma.story.create({ data: storyData });
 
-    res.status(201).json({ message: "Баннер успешно создан." });
+    res.status(201).json({ message: "Stories успешно создано." });
   } catch (err) {
-    console.log(err);
-    res.status(500).send("Ошибка при создании баннера.");
+    res.status(500).send("Ошибка при создании Stories.");
   }
 });
 
-const updateBanner = asyncHandler(async (req, res) => {
+const updateStory = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
   const {
     name,
-    order,
     isActive,
     productBarcode,
     categoryId,
     subCategoryId,
     segmentId,
+    brandId,
     startDate,
     endDate,
     productsArray,
   } = req.body;
 
-  console.log(req.body);
-
   const getNullOrValue = (value) => (value === "null" ? null : value);
 
   try {
-    const existingBanner = await prisma.banner.findUnique({
+    const existingStory = await prisma.story.findUnique({
       where: { id: Number(id) },
     });
 
-    if (!existingBanner) {
-      return res.status(404).json({ message: "Баннер не найден." });
+    if (!existingStory) {
+      return res.status(404).json({ message: "Stories не найден." });
     }
 
     let idToInclude =
       getNullOrValue(productBarcode) ||
       getNullOrValue(categoryId) ||
       getNullOrValue(subCategoryId) ||
-      getNullOrValue(segmentId);
+      getNullOrValue(segmentId) ||
+      getNullOrValue(brandId);
 
     let url = idToInclude ? idToInclude : null;
 
-    let bannerImage = null;
+    let storyImage = null;
 
     if (req.file) {
       const fileExtension = extname(req.file.originalname);
       const filename = `${Date.now()}${fileExtension}`;
-      bannerImage = await optimizeAndSaveImage(req.file.buffer, filename);
+      storyImage = await optimizeAndSaveImage(req.file.buffer, filename);
     }
 
-    const newBannerData = {
+    const newStoryData = {
       name: getNullOrValue(name) || existingBanner.name,
       order: Number(order) || existingBanner.order,
       isActive: JSON.parse(isActive),
@@ -284,52 +246,53 @@ const updateBanner = asyncHandler(async (req, res) => {
     };
 
     if (productBarcode && productBarcode !== "null")
-      newBannerData.Product = { connect: { barcode: productBarcode } };
+      newStoryData.Product = { connect: { barcode: productBarcode } };
     if (categoryId && categoryId !== "null")
-      newBannerData.Category = { connect: { id: categoryId } };
+      newStoryData.Category = { connect: { id: categoryId } };
     if (subCategoryId && subCategoryId !== "null")
-      newBannerData.SubCategory = { connect: { id: subCategoryId } };
+      newStoryData.SubCategory = { connect: { id: subCategoryId } };
     if (segmentId && segmentId !== "null")
-      newBannerData.Segment = { connect: { id: segmentId } };
+      newStoryData.Segment = { connect: { id: segmentId } };
+    if (brandId && brandId !== "null")
+      newStoryData.Brand = { connect: { id: brandId } };
 
     if (req.file) {
-      newBannerData.image = bannerImage;
+      newStoryData.image = storyImage;
     } else {
-      newBannerData.image = existingBanner.image;
+      newStoryData.image = existingStory.image;
     }
 
-    await prisma.banner.update({
+    await prisma.story.update({
       where: { id: Number(id) },
-      data: newBannerData,
+      data: newStoryData,
     });
 
-    res.status(201).json({ message: "Баннер успешно обновлен." });
+    res.status(201).json({ message: "Stories успешно обновлен." });
   } catch (err) {
-    console.log(err);
-    res.status(500).send("Ошибка при обновлении баннера.");
+    res.status(500).send("Ошибка при обновлении Stories.");
   }
 });
 
-const deleteBanner = asyncHandler(async (req, res) => {
+const deleteStory = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
   try {
-    const banner = await prisma.banner.delete({
+    const story = await prisma.story.delete({
       where: { id: Number(id) },
     });
-    return banner
-      ? res.json({ message: "Баннер удален." })
-      : res.status(404).json({ message: "Баннер не найден." });
+    return story
+      ? res.json({ message: "Stories удален." })
+      : res.status(404).json({ message: "Stories не найден." });
   } catch (err) {
-    res.status(500).send("Ошибка при удалении баннера.");
+    res.status(500).send("Ошибка при удалении Stories.");
   }
 });
 
-router.post("/all", fetchAllBanners);
-router.get("/active", fetchActiveBanners);
-router.get("/fetch/:id", fetchBannerById);
-router.post("/new", upload.single("image"), newBanner);
-router.patch("/update/:id", upload.single("image"), updateBanner);
-router.delete("/delete/:id", deleteBanner);
+router.post("/all", fetchAllStories);
+router.get("/active", fetchActiveStories);
+router.get("/fetch/:id", fetchStoryByID);
+router.post("/new", upload.single("image"), newStory);
+router.patch("/update/:id", upload.single("image"), updateStory);
+router.delete("/delete/:id", deleteStory);
 
 export default router;

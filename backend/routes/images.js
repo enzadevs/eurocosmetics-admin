@@ -12,12 +12,14 @@ const productsPath = path.join(__dirname, "../uploads/products");
 const popUpPath = path.join(__dirname, "../uploads/popup");
 const brandsPath = path.join(__dirname, "../uploads/brands");
 const bannersPath = path.join(__dirname, "../uploads/banner");
+const storiesPath = path.join(__dirname, "../uploads/stories");
 const categoriesPath = path.join(__dirname, "../uploads/categories");
 const subCategoriesPath = path.join(__dirname, "../uploads/subcategories");
 const segmentsPath = path.join(__dirname, "../uploads/segments");
 
 router.use("/popup/", express.static(popUpPath));
 router.use("/banner/", express.static(bannersPath));
+router.use("/stories/", express.static(storiesPath));
 router.use("/brands/", express.static(brandsPath));
 router.use("/products/", express.static(productsPath));
 router.use("/categories/", express.static(categoriesPath));

@@ -161,7 +161,7 @@ export default function HomeLayout({ children }) {
                       src="/logo.png"
                       width={32}
                       height={32}
-                      alt="logo of arzan al"
+                      alt="logo of eurocosmetics"
                       quality={70}
                       className="rounded-l"
                     />

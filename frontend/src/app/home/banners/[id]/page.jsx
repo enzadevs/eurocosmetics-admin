@@ -72,6 +72,8 @@ export default function UpdateBannerPage({ params }) {
       formData.append("subCategoryId", subCategoryIdRef.current || null);
       formData.append("segmentId", segmentIdRef.current || null);
       formData.append("productBarcode", productBarcodeRef.current || null);
+      formData.append("startDate", data.startDate || bannerData?.startDate);
+      formData.append("endDate", data.endDate || bannerData?.endDate);
       if (productsArray) {
         let productsArrayFormatted;
 
@@ -209,6 +211,32 @@ export default function UpdateBannerPage({ params }) {
                 defaultValue={bannerData?.name}
                 placeholder="Описание"
                 {...register("name")}
+              />
+            </div>
+            <div className="center-row gap-1 w-full">
+              <p className="min-w-24 md:min-w-32">Дата начала:</p>
+              <input
+                type="date"
+                className="input-primary px-2 w-full"
+                defaultValue={
+                  bannerData?.startDate
+                    ? new Date(bannerData.startDate).toISOString().split("T")[0]
+                    : ""
+                }
+                {...register("startDate")}
+              />
+            </div>
+            <div className="center-row gap-1 w-full">
+              <p className="min-w-24 md:min-w-32">Дата окончания:</p>
+              <input
+                type="date"
+                className="input-primary px-2 w-full"
+                defaultValue={
+                  bannerData?.endDate
+                    ? new Date(bannerData.endDate).toISOString().split("T")[0]
+                    : ""
+                }
+                {...register("endDate")}
               />
             </div>
             <div className="bg-blue-200 dark:bg-dark rounded p-2 w-full">

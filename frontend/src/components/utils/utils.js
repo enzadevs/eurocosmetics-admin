@@ -19,4 +19,4 @@ export function ErrorToast({ errorText }) {
   });
 }
 
-export const apiUrl = "https://eurocos.alemtilsimat.com/api";
+export const apiUrl = "http://eurocos.alemtilsimat.com/api";
