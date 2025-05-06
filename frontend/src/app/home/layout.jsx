@@ -157,14 +157,14 @@ export default function HomeLayout({ children }) {
               <div className="center-row gap-2">
                 <DrawerButton url="/home" classes="grow">
                   <div className="center-col h-9 w-9">
-                    <Image
+                    {/* <Image
                       src="/logo.png"
                       width={32}
                       height={32}
                       alt="logo of eurocosmetics"
                       quality={70}
                       className="rounded-l"
-                    />
+                    /> */}
                   </div>
                   <span>Euro Cosmetics</span>
                 </DrawerButton>
