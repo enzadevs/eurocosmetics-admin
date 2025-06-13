@@ -21,6 +21,7 @@ import {
   Info,
   SquareTerminal,
   UserCog,
+  FileVideo,
 } from "lucide-react";
 import { cloneElement } from "react";
 
@@ -75,6 +76,12 @@ export default function HomePage() {
       url: "/home/brands",
       icon: <ShieldCheck />,
       title: "Бренды",
+      roles: ["ADMIN", "MANAGER"],
+    },
+    {
+      url: "/home/stories",
+      icon: <FileVideo />,
+      title: "Сторис",
       roles: ["ADMIN", "MANAGER"],
     },
     {

@@ -139,6 +139,7 @@ const newStory = asyncHandler(async (req, res) => {
     productBarcode,
     brandId,
     productsArray = [],
+    videoDuration,
   } = req.body;
 
   const getNullOrValue = (value) => (value === "null" ? null : value);
@@ -166,6 +167,7 @@ const newStory = asyncHandler(async (req, res) => {
     isActive: JSON.parse(isActive),
     ProductsArray: JSON.parse(productsArray),
     link: url,
+    videoDuration: videoDuration,
     image: storyImage,
     startDate: new Date(startDate) || null,
     endDate: new Date(endDate) || null,
@@ -205,6 +207,7 @@ const updateStory = asyncHandler(async (req, res) => {
     startDate,
     endDate,
     productsArray,
+    videoDuration,
   } = req.body;
 
   const getNullOrValue = (value) => (value === "null" ? null : value);
@@ -237,6 +240,7 @@ const updateStory = asyncHandler(async (req, res) => {
 
     const newStoryData = {
       name: getNullOrValue(name) || existingBanner.name,
+      videoDuration: videoDuration || existingBanner.videoDuration,
       order: Number(order) || existingBanner.order,
       isActive: JSON.parse(isActive),
       ProductsArray: JSON.parse(productsArray) || existingBanner.ProductsArray,

@@ -51,15 +51,14 @@ export default function ProductSwiper({ images }) {
         {images.map((file, index) => (
           <SwiperSlide key={index}>
             <button
-              className="relative h-full w-full"
+              className="relative h-14 w-14"
               onClick={(e) => e.preventDefault()}
             >
-              <Image
+              <img
                 src={URL.createObjectURL(file)}
                 alt="thumbnail of currently selected image"
                 className="bg-white basic-border p-2 object-contain"
                 sizes="100vw"
-                fill
               />
             </button>
           </SwiperSlide>

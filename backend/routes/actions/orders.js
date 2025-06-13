@@ -600,14 +600,13 @@ const checkOut = asyncHandler(async (req, res) => {
   }
 });
 
-const updatedNewOrder = asyncHandler(async (req, res) => {
+const newOrder = asyncHandler(async (req, res) => {
   const {
     customerId,
     unRegisteredCustomerId,
     phoneNumber,
     username,
     comment,
-    sum,
     pointsEarned,
     payPoints,
     orderItems,
@@ -664,11 +663,23 @@ const updatedNewOrder = asyncHandler(async (req, res) => {
       return map;
     }, {});
 
+    const missingProducts = orderItems.filter(
+      (item) => !priceMap[item.barcode]
+    );
+
+    if (missingProducts.length > 0) {
+      console.log("Некоторые товары не найдены");
+    }
+
     const productsArray = orderItems.map((product) => ({
       productBarcode: product.barcode,
       quantity: product.quantity || 1,
       currentSellPrice: priceMap[product.barcode],
     }));
+
+    const calculatedSum = productsArray.reduce((total, item) => {
+      return total + Number(item.currentSellPrice) * Number(item.quantity);
+    }, 0);
 
     let unregisteredUser;
 
@@ -688,12 +699,13 @@ const updatedNewOrder = asyncHandler(async (req, res) => {
       });
     }
 
-    const actualPayPoints = Math.min(Number(payPoints) || 0, Number(sum));
+    const actualPayPoints = Math.min(Number(payPoints) || 0, calculatedSum);
 
     let orderData = {
       phoneNumber,
       comment,
-      sum,
+      address,
+      sum: calculatedSum,
       pointsEarned: customerId ? Number(pointsEarned) : 0,
       payPoints: actualPayPoints,
       PaymentType: { connect: { id: Number(paymentTypeId) } },
@@ -722,11 +734,11 @@ const updatedNewOrder = asyncHandler(async (req, res) => {
     if (address) {
       const newAddress = await prisma.address.create({
         data: {
-          street: address.street,
-          house: address.house,
-          entrance: address.entrance,
-          roof: address.roof,
-          room: address.room,
+          street: address,
+          house: address.house || "",
+          entrance: address.entrance || "",
+          roof: address.roof || "",
+          room: address.room || "",
         },
       });
       orderData.Address = { connect: { id: newAddress.id } };
@@ -1216,7 +1228,7 @@ router.post("/current", fetchAllOrders);
 router.post("/delivered", fetchDeliveredOrders);
 router.post("/cancelled", fetchCancelledOrders);
 router.post("/checkout", checkOut);
-router.post("/new", updatedNewOrder);
+router.post("/new", newOrder);
 router.patch("/update/:id", updateOrder);
 router.patch("/cancel", cancelOrder);
 router.delete("/deleteall", deleteAllOrders);

@@ -325,6 +325,27 @@ const fetchProductsForClient = asyncHandler(async (req, res) => {
             nameTm: true,
           },
         },
+        Category: {
+          select: {
+            id: true,
+            nameRu: true,
+            nameTm: true,
+          },
+        },
+        SubCategory: {
+          select: {
+            id: true,
+            nameRu: true,
+            nameTm: true,
+          },
+        },
+        Segment: {
+          select: {
+            id: true,
+            nameRu: true,
+            nameTm: true,
+          },
+        },
         stock: true,
         imageOne: true,
         limit: true,

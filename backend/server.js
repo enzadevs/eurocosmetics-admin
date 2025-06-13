@@ -8,8 +8,15 @@ dotenv.config();
 
 const app = express();
 
+const corsOptions = {
+  origin: ["http://localhost:8124", "http://localhost:3000"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+};
+
 app.use(helmet());
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json({ limit: "400mb", extended: true }));
 app.use(
   express.urlencoded({ limit: "400mb", extended: true, parameterLimit: 500000 })

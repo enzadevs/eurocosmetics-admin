@@ -47,12 +47,12 @@ export default function ImagesSwiper({ images }) {
           freeMode={true}
           watchSlidesProgress={true}
           modules={[FreeMode, Navigation, Thumbs]}
-          className="thumbs rounded flex justify-between mt-2 h-14 w-full"
+          className="thumbs rounded flex justify-between h-14 w-full"
         >
           {images?.map((file, index) => (
             <SwiperSlide key={index}>
               <button
-                className="relative h-full w-full"
+                className="relative h-14 w-20"
                 onClick={(e) => e.preventDefault()}
               >
                 <img

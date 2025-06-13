@@ -42,10 +42,8 @@ export default function SignInContainer() {
           "LOGIN"
         );
 
-        setTimeout(() => {
-          SuccessToast({ successText: "Вы успешно вошли в аккаунт." });
-          router.push("/home");
-        }, 1750);
+        SuccessToast({ successText: "Вы успешно вошли в аккаунт." });
+        router.push("/home");
       } else {
         const errorResponse = await response.json();
         ErrorToast({
@@ -69,13 +67,13 @@ export default function SignInContainer() {
 
   return (
     <div className="bg-support dark:bg-dark rounded flex flex-col md:flex-row items-center mb-16 md:mb-0 p-4 h-fit w-auto">
-      {/* <Image
+      <Image
         src="/logo.png"
         alt="logo of euro cosmetics"
         width={200}
         height={200}
         quality={100}
-      /> */}
+      />
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="center-col gap-1 w-full"

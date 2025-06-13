@@ -40,7 +40,7 @@ import settingsRouter from "./manage/settings.js";
 import analyticsRouter from "./actions/analytics.js";
 import syncRouter from "./actions/sync.js";
 import pushNotificationsRouter from "./actions/push.js";
-import uploadsRouter from "./images.js";
+import uploadsRouter from "./static.js";
 router.use("/actions", actionsRouter);
 router.use("/popup", popUpRouter);
 router.use("/banners", bannersRouter);

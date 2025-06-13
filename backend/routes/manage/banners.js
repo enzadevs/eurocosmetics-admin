@@ -6,17 +6,23 @@ import { prisma } from "../../exportprisma.js";
 import { asyncHandler, timeFormat } from "../../utils.js";
 
 const router = express.Router();
-const multerStorage = multer;
 const storage = multer.memoryStorage();
-const upload = multerStorage({ storage: storage });
+const upload = multer({ storage: storage });
 
 const optimizeAndSaveImage = async (buffer, filename) => {
   const optimizedImagePath = join("uploads/banner/", filename);
   await sharp(buffer, { failOnError: false })
-    .resize(2000)
+    .resize(1500)
     .jpeg({ quality: 97 })
     .toFile(optimizedImagePath);
   return optimizedImagePath;
+};
+
+const saveVideo = async (buffer, filename) => {
+  const videoPath = join("uploads/banner/videos/", filename);
+  const fs = await import("fs/promises");
+  await fs.writeFile(videoPath, buffer);
+  return videoPath;
 };
 
 const fetchAllBanners = asyncHandler(async (req, res) => {
@@ -67,8 +73,8 @@ const fetchActiveBanners = asyncHandler(async (req, res) => {
     const banners = await prisma.banner.findMany({
       where: {
         isActive: true,
-        startDate: { lte: new Date() },
-        endDate: { gte: new Date() },
+        // startDate: { lte: new Date() },
+        // endDate: { gte: new Date() },
       },
       orderBy: { order: "asc" },
       include: {
@@ -76,6 +82,7 @@ const fetchActiveBanners = asyncHandler(async (req, res) => {
         Category: true,
         SubCategory: true,
         Segment: true,
+        Brand: true,
       },
     });
 
@@ -113,6 +120,7 @@ const fetchBannerById = asyncHandler(async (req, res) => {
         Category: true,
         SubCategory: true,
         Segment: true,
+        Brand: true,
       },
     });
 
@@ -176,26 +184,57 @@ const newBanner = asyncHandler(async (req, res) => {
     categoryId,
     subCategoryId,
     segmentId,
+    brandId,
     productBarcode,
     productsArray = [],
+    videoDuration,
   } = req.body;
 
-  const getNullOrValue = (value) => (value === "null" ? null : value);
+  const getNullOrValue = (value) =>
+    value === "null" || value === "" ? null : value;
 
   let idToInclude =
     getNullOrValue(productBarcode) ||
     getNullOrValue(categoryId) ||
     getNullOrValue(subCategoryId) ||
-    getNullOrValue(segmentId);
+    getNullOrValue(segmentId) ||
+    getNullOrValue(brandId);
 
   let url = idToInclude ? idToInclude : null;
 
   let bannerImage = null;
+  let bannerVideo = null;
+  let mobileImage = null;
+  let mobileVideo = null;
 
-  if (req.file) {
-    const fileExtension = extname(req.file.originalname);
-    const filename = `${Date.now()}${fileExtension}`;
-    bannerImage = await optimizeAndSaveImage(req.file.buffer, filename);
+  if (req.files) {
+    if (req.files.image) {
+      const imageFile = req.files.image[0];
+      const fileExtension = extname(imageFile.originalname);
+      const filename = `image_${Date.now()}${fileExtension}`;
+      bannerImage = await optimizeAndSaveImage(imageFile.buffer, filename);
+    }
+
+    if (req.files.video) {
+      const videoFile = req.files.video[0];
+      const fileExtension = extname(videoFile.originalname);
+      const filename = `video_${Date.now()}${fileExtension}`;
+      bannerVideo = await saveVideo(videoFile.buffer, filename);
+    }
+
+    if (req.files.mobileImage) {
+      const imageFile = req.files.mobileImage[0];
+      const fileExtension = extname(imageFile.originalname);
+      const filename = `mobimage_${Date.now()}${fileExtension}`;
+      bannerImage = await optimizeAndSaveImage(imageFile.buffer, filename);
+    }
+
+    if (req.files.mobileVideo) {
+      const videoFile = req.files.mobileVideo[0];
+      const fileExtension = extname(videoFile.originalname);
+      const filename = `mobvideo_${Date.now()}${fileExtension}`;
+      mobileVideo = await saveVideo(videoFile.buffer, filename);
+    }
   }
 
   let bannerData = {
@@ -205,8 +244,12 @@ const newBanner = asyncHandler(async (req, res) => {
     ProductsArray: JSON.parse(productsArray),
     link: url,
     image: bannerImage,
-    startDate: new Date(startDate) || null,
-    endDate: new Date(endDate) || null,
+    video: bannerVideo,
+    mobileImage: mobileImage,
+    mobileVideo: mobileVideo,
+    videoDuration: videoDuration,
+    startDate: startDate ? new Date(startDate) : null,
+    endDate: endDate ? new Date(endDate) : null,
   };
 
   if (productBarcode && productBarcode !== "null")
@@ -217,10 +260,11 @@ const newBanner = asyncHandler(async (req, res) => {
     bannerData.SubCategory = { connect: { id: subCategoryId } };
   if (segmentId && segmentId !== "null")
     bannerData.Segment = { connect: { id: segmentId } };
+  if (brandId && brandId !== "null")
+    bannerData.Brand = { connect: { id: brandId } };
 
   try {
     await prisma.banner.create({ data: bannerData });
-
     res.status(201).json({ message: "Баннер успешно создан." });
   } catch (err) {
     console.log(err);
@@ -239,14 +283,15 @@ const updateBanner = asyncHandler(async (req, res) => {
     categoryId,
     subCategoryId,
     segmentId,
+    brandId,
     startDate,
     endDate,
     productsArray,
+    videoDuration,
   } = req.body;
 
-  console.log(req.body);
-
-  const getNullOrValue = (value) => (value === "null" ? null : value);
+  const getNullOrValue = (value) =>
+    value === "null" || value === "" ? null : value;
 
   try {
     const existingBanner = await prisma.banner.findUnique({
@@ -261,41 +306,93 @@ const updateBanner = asyncHandler(async (req, res) => {
       getNullOrValue(productBarcode) ||
       getNullOrValue(categoryId) ||
       getNullOrValue(subCategoryId) ||
-      getNullOrValue(segmentId);
+      getNullOrValue(segmentId) ||
+      getNullOrValue(brandId);
 
     let url = idToInclude ? idToInclude : null;
 
-    let bannerImage = null;
+    let bannerImage = existingBanner.image;
+    let bannerVideo = existingBanner.video;
+    let mobileImage = existingBanner.mobileImage;
+    let mobileVideo = existingBanner.mobileVideo;
 
-    if (req.file) {
-      const fileExtension = extname(req.file.originalname);
-      const filename = `${Date.now()}${fileExtension}`;
-      bannerImage = await optimizeAndSaveImage(req.file.buffer, filename);
+    if (req.files) {
+      if (req.files.image) {
+        const imageFile = req.files.image[0];
+        const fileExtension = extname(imageFile.originalname);
+        const filename = `image_${Date.now()}${fileExtension}`;
+        bannerImage = await optimizeAndSaveImage(imageFile.buffer, filename);
+      }
+
+      if (req.files.video) {
+        const videoFile = req.files.video[0];
+        const fileExtension = extname(videoFile.originalname);
+        const filename = `video_${Date.now()}${fileExtension}`;
+        bannerVideo = await saveVideo(videoFile.buffer, filename);
+      }
+
+      if (req.files.mobileImage) {
+        const imageFile = req.files.mobileImage[0];
+        const fileExtension = extname(imageFile.originalname);
+        const filename = `mobimage_${Date.now()}${fileExtension}`;
+        mobileImage = await optimizeAndSaveImage(imageFile.buffer, filename);
+      }
+
+      if (req.files.mobileVideo) {
+        const videoFile = req.files.mobileVideo[0];
+        const fileExtension = extname(videoFile.originalname);
+        const filename = `mobvideo_${Date.now()}${fileExtension}`;
+        mobileVideo = await saveVideo(videoFile.buffer, filename);
+      }
     }
 
     const newBannerData = {
       name: getNullOrValue(name) || existingBanner.name,
-      order: Number(order) || existingBanner.order,
-      isActive: JSON.parse(isActive),
-      ProductsArray: JSON.parse(productsArray) || existingBanner.ProductsArray,
-      link: url || existingBanner.link,
-      startDate: new Date(startDate) || existingBanner.startDate,
-      endDate: new Date(endDate) || existingBanner.endDate,
+      order: order ? Number(order) : existingBanner.order,
+      isActive: isActive ? JSON.parse(isActive) : existingBanner.isActive,
+      videoDuration: videoDuration
+        ? videoDuration
+        : existingBanner.videoDuration,
+      ProductsArray: productsArray
+        ? JSON.parse(productsArray)
+        : existingBanner.ProductsArray,
+      link: url !== null ? url : existingBanner.link,
+      startDate: startDate ? new Date(startDate) : existingBanner.startDate,
+      endDate: endDate ? new Date(endDate) : existingBanner.endDate,
+      image: bannerImage,
+      video: bannerVideo,
+      mobileImage: mobileImage,
+      mobileVideo: mobileVideo,
     };
 
-    if (productBarcode && productBarcode !== "null")
+    if (productBarcode && productBarcode !== "null") {
       newBannerData.Product = { connect: { barcode: productBarcode } };
-    if (categoryId && categoryId !== "null")
-      newBannerData.Category = { connect: { id: categoryId } };
-    if (subCategoryId && subCategoryId !== "null")
-      newBannerData.SubCategory = { connect: { id: subCategoryId } };
-    if (segmentId && segmentId !== "null")
-      newBannerData.Segment = { connect: { id: segmentId } };
+    } else if (productBarcode === "null") {
+      newBannerData.Product = { disconnect: true };
+    }
 
-    if (req.file) {
-      newBannerData.image = bannerImage;
-    } else {
-      newBannerData.image = existingBanner.image;
+    if (categoryId && categoryId !== "null") {
+      newBannerData.Category = { connect: { id: categoryId } };
+    } else if (categoryId === "null") {
+      newBannerData.Category = { disconnect: true };
+    }
+
+    if (subCategoryId && subCategoryId !== "null") {
+      newBannerData.SubCategory = { connect: { id: subCategoryId } };
+    } else if (subCategoryId === "null") {
+      newBannerData.SubCategory = { disconnect: true };
+    }
+
+    if (segmentId && segmentId !== "null") {
+      newBannerData.Segment = { connect: { id: segmentId } };
+    } else if (segmentId === "null") {
+      newBannerData.Segment = { disconnect: true };
+    }
+
+    if (brandId && brandId !== "null") {
+      newBannerData.Brand = { connect: { id: brandId } };
+    } else if (brandId === "null") {
+      newBannerData.Brand = { disconnect: true };
     }
 
     await prisma.banner.update({
@@ -303,7 +400,7 @@ const updateBanner = asyncHandler(async (req, res) => {
       data: newBannerData,
     });
 
-    res.status(201).json({ message: "Баннер успешно обновлен." });
+    res.status(200).json({ message: "Баннер успешно обновлен." });
   } catch (err) {
     console.log(err);
     res.status(500).send("Ошибка при обновлении баннера.");
@@ -328,8 +425,26 @@ const deleteBanner = asyncHandler(async (req, res) => {
 router.post("/all", fetchAllBanners);
 router.get("/active", fetchActiveBanners);
 router.get("/fetch/:id", fetchBannerById);
-router.post("/new", upload.single("image"), newBanner);
-router.patch("/update/:id", upload.single("image"), updateBanner);
+router.post(
+  "/new",
+  upload.fields([
+    { name: "image", maxCount: 1 },
+    { name: "video", maxCount: 1 },
+    { name: "mobileImage", maxCount: 1 },
+    { name: "mobileVideo", maxCount: 1 },
+  ]),
+  newBanner
+);
+router.patch(
+  "/update/:id",
+  upload.fields([
+    { name: "image", maxCount: 1 },
+    { name: "video", maxCount: 1 },
+    { name: "mobileImage", maxCount: 1 },
+    { name: "mobileVideo", maxCount: 1 },
+  ]),
+  updateBanner
+);
 router.delete("/delete/:id", deleteBanner);
 
 export default router;

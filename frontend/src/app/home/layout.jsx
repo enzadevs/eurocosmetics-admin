@@ -53,6 +53,7 @@ const ROLE_PERMISSIONS = {
     "/home/categories",
     "/home/subcategories",
     "/home/segments",
+    "/home/stories",
     "/home/brands",
     "/home/push",
     "/home/popup",
@@ -68,6 +69,7 @@ const ROLE_PERMISSIONS = {
     "/home/categories",
     "/home/subcategories",
     "/home/segments",
+    "/home/stories",
     "/home/brands",
     "/home/push",
     "/home/popup",
@@ -157,14 +159,14 @@ export default function HomeLayout({ children }) {
               <div className="center-row gap-2">
                 <DrawerButton url="/home" classes="grow">
                   <div className="center-col h-9 w-9">
-                    {/* <Image
+                    <Image
                       src="/logo.png"
                       width={32}
                       height={32}
                       alt="logo of eurocosmetics"
                       quality={70}
                       className="rounded-l"
-                    /> */}
+                    />
                   </div>
                   <span>Euro Cosmetics</span>
                 </DrawerButton>
@@ -196,7 +198,7 @@ export default function HomeLayout({ children }) {
                   )}
                 </DrawerButton>
               ))}
-              <ThemeSwitcherButton />
+              {/* <ThemeSwitcherButton /> */}
               <div className="center-row justify-between gap-2 mt-auto h-10 w-full">
                 <div className="bg-white dark:bg-darkTwo basic-border center-row text-dark dark:text-support transition hover:text-primary px-2 h-9 md:h-10 w-full">
                   <div className="center-col size-9">
@@ -230,7 +232,7 @@ export default function HomeLayout({ children }) {
                   )}
                 </DrawerButtonSmall>
               ))}
-              <ThemeSwitcher />
+              {/* <ThemeSwitcher /> */}
               <button
                 onClick={() => {
                   confirmLogOut();

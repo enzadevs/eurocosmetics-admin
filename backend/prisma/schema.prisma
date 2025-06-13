@@ -85,10 +85,10 @@ model Category {
     nameRu        String?
     order         Int?
     image         String?
+    coverImage    String?
     isActive      Boolean?      @default(true)
     discountType  DiscountType?
     discountValue Decimal?
-    deliveryPrice Int?
     Products      Product[]
     SubCategories SubCategory[]
     Banner        Banner[]
@@ -102,6 +102,7 @@ model SubCategory {
     nameRu        String?
     order         Int?
     image         String?
+    coverImage    String?
     isActive      Boolean?      @default(true)
     discountType  DiscountType?
     discountValue Decimal?
@@ -120,6 +121,7 @@ model Segment {
     nameRu        String?
     order         Int?
     image         String?
+    coverImage    String?
     isActive      Boolean?      @default(true)
     discountType  DiscountType?
     discountValue Decimal?
@@ -299,7 +301,6 @@ model PopUp {
     name           String?
     link           String?
     image          String?
-    placeholder    String?
     video          String?
     isActive       Boolean?     @default(true)
     countdown      Int?
@@ -325,8 +326,10 @@ model Banner {
     name           String?
     link           String?
     image          String?
-    placeholder    String?
+    mobileImage    String?
     video          String?
+    mobileVideo    String?
+    videoDuration  String?
     order          Int?
     startDate      DateTime?
     endDate        DateTime?
@@ -354,8 +357,8 @@ model Story {
     name           String?
     link           String?
     image          String?
-    placeholder    String?
     video          String?
+    videoDuration  String?
     order          Int?
     startDate      DateTime?
     endDate        DateTime?
