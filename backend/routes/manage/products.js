@@ -256,8 +256,11 @@ const fetchProductsForClient = asyncHandler(async (req, res) => {
       { id: "asc" },
     ];
 
+    // Check if sorting is specifically by currentSellPrice
+    const isSortingByPrice = sortBy === "currentSellPrice";
+
     if (sortBy) {
-      if (sortBy === "currentSellPrice") {
+      if (isSortingByPrice) {
         orderBy = [
           { currentSellPrice: order === "asc" ? "asc" : "desc" },
           { id: "asc" },
@@ -290,67 +293,143 @@ const fetchProductsForClient = asyncHandler(async (req, res) => {
     const totalPages = Math.ceil(productCount / limit);
     const currentPage = Math.max(1, Math.min(page, totalPages));
 
-    const products = await prisma.product.findMany({
-      where: {
-        ...filters,
-        stock: { gt: 0 },
-        currentSellPrice: { gt: 0 },
-        isActive: true,
-        OR: [
-          { nameTm: { contains: query, mode: "insensitive" } },
-          { nameRu: { contains: query, mode: "insensitive" } },
-          { barcode: { contains: query, mode: "insensitive" } },
-          { hashtags: { has: query } },
-          { nameTm: { startsWith: query.slice(0, 3), mode: "insensitive" } },
-          { nameRu: { startsWith: query.slice(0, 3), mode: "insensitive" } },
-        ],
-      },
-      take: limit,
-      skip: (currentPage - 1) * limit,
-      orderBy: orderBy,
-      select: {
-        id: true,
-        barcode: true,
-        nameTm: true,
-        nameRu: true,
-        sellPrice: true,
-        currentSellPrice: true,
-        discountType: true,
-        discountValue: true,
-        unit: true,
-        Status: {
-          select: {
-            id: true,
-            nameRu: true,
-            nameTm: true,
-          },
+    let products;
+
+    if (isSortingByPrice) {
+      // Use normal ordering for price sorting
+      products = await prisma.product.findMany({
+        where: {
+          ...filters,
+          stock: { gt: 0 },
+          currentSellPrice: { gt: 0 },
+          isActive: true,
+          OR: [
+            { nameTm: { contains: query, mode: "insensitive" } },
+            { nameRu: { contains: query, mode: "insensitive" } },
+            { barcode: { contains: query, mode: "insensitive" } },
+            { hashtags: { has: query } },
+            { nameTm: { startsWith: query.slice(0, 3), mode: "insensitive" } },
+            { nameRu: { startsWith: query.slice(0, 3), mode: "insensitive" } },
+          ],
         },
-        Category: {
-          select: {
-            id: true,
-            nameRu: true,
-            nameTm: true,
+        take: limit,
+        skip: (currentPage - 1) * limit,
+        orderBy: orderBy,
+        select: {
+          id: true,
+          barcode: true,
+          nameTm: true,
+          nameRu: true,
+          sellPrice: true,
+          currentSellPrice: true,
+          discountType: true,
+          discountValue: true,
+          unit: true,
+          Status: {
+            select: {
+              id: true,
+              nameRu: true,
+              nameTm: true,
+            },
           },
-        },
-        SubCategory: {
-          select: {
-            id: true,
-            nameRu: true,
-            nameTm: true,
+          Category: {
+            select: {
+              id: true,
+              nameRu: true,
+              nameTm: true,
+            },
           },
-        },
-        Segment: {
-          select: {
-            id: true,
-            nameRu: true,
-            nameTm: true,
+          SubCategory: {
+            select: {
+              id: true,
+              nameRu: true,
+              nameTm: true,
+            },
           },
+          Segment: {
+            select: {
+              id: true,
+              nameRu: true,
+              nameTm: true,
+            },
+          },
+          stock: true,
+          imageOne: true,
+          limit: true,
         },
-        stock: true,
-        imageOne: true,
-        limit: true,
-      },
-    });
+      });
+    } else {
+      // For all other cases (including default), fetch all products and randomize
+      const allProducts = await prisma.product.findMany({
+        where: {
+          ...filters,
+          stock: { gt: 0 },
+          currentSellPrice: { gt: 0 },
+          isActive: true,
+          OR: [
+            { nameTm: { contains: query, mode: "insensitive" } },
+            { nameRu: { contains: query, mode: "insensitive" } },
+            { barcode: { contains: query, mode: "insensitive" } },
+            { hashtags: { has: query } },
+            { nameTm: { startsWith: query.slice(0, 3), mode: "insensitive" } },
+            { nameRu: { startsWith: query.slice(0, 3), mode: "insensitive" } },
+          ],
+        },
+        select: {
+          id: true,
+          barcode: true,
+          nameTm: true,
+          nameRu: true,
+          sellPrice: true,
+          currentSellPrice: true,
+          discountType: true,
+          discountValue: true,
+          unit: true,
+          Status: {
+            select: {
+              id: true,
+              nameRu: true,
+              nameTm: true,
+            },
+          },
+          Category: {
+            select: {
+              id: true,
+              nameRu: true,
+              nameTm: true,
+            },
+          },
+          SubCategory: {
+            select: {
+              id: true,
+              nameRu: true,
+              nameTm: true,
+            },
+          },
+          Segment: {
+            select: {
+              id: true,
+              nameRu: true,
+              nameTm: true,
+            },
+          },
+          stock: true,
+          imageOne: true,
+          limit: true,
+        },
+      });
+
+      // Shuffle the products array using Fisher-Yates algorithm
+      for (let i = allProducts.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [allProducts[i], allProducts[j]] = [allProducts[j], allProducts[i]];
+      }
+
+      // Apply pagination to the shuffled array
+      const startIndex = (currentPage - 1) * limit;
+      const endIndex = startIndex + limit;
+      products = allProducts.slice(startIndex, endIndex);
+    }
 
     if (products.length === 0) {
       return res.status(404).json({ message: "Товары не были найдены." });
@@ -368,7 +447,6 @@ const fetchProductsForClient = asyncHandler(async (req, res) => {
     res.status(500).send("Ошибка при получении данных.");
   }
 });
-
 const fetchMostSoldProducts = asyncHandler(async (req, res) => {
   const { page = 1, limit = 20 } = req.body;
   const skip = (page - 1) * limit;
@@ -549,6 +627,7 @@ const fetchProductForAdmin = asyncHandler(async (req, res) => {
             nameRu: true,
           },
         },
+        Brand: true,
         OrderItem: {
           orderBy: { id: "desc" },
           take: 100,
@@ -604,6 +683,7 @@ const newProduct = asyncHandler(async (req, res) => {
     categoryId,
     subCategoryId,
     segmentId,
+    brandId,
   } = req.body;
 
   try {
@@ -633,7 +713,7 @@ const newProduct = asyncHandler(async (req, res) => {
       nameTm,
       nameRu,
       order: Number(order),
-      incomePrice: parseFloat(incomePrice).toFixed(2),
+      incomePrice: 0,
       sellPrice: parseFloat(sellPrice).toFixed(2),
       discountType:
         discountType && ["FIXED", "PERCENTAGE"].includes(discountType)
@@ -669,6 +749,12 @@ const newProduct = asyncHandler(async (req, res) => {
     if (segmentId !== "null") {
       productData.Segment = {
         connect: { id: segmentId },
+      };
+    }
+
+    if (brandId !== "null") {
+      productData.Brand = {
+        connect: { id: brandId },
       };
     }
 
@@ -714,14 +800,23 @@ const updateProduct = asyncHandler(async (req, res) => {
     productStatusId,
     descriptionTm,
     descriptionRu,
+    usageTm,
+    usageRu,
+    ingredientsTm,
+    ingredientsRu,
+    additionalInfoTm,
+    additionalInfoRu,
     limit,
     isActive,
     hashtags,
     categoryId,
     subCategoryId,
     segmentId,
+    brandId,
     waitListCount,
   } = req.body;
+
+  console.log(req.body);
 
   try {
     const existingProduct = await prisma.product.findUnique({
@@ -772,8 +867,7 @@ const updateProduct = asyncHandler(async (req, res) => {
       nameRu: nameRu || existingProduct.nameRu,
       nameTm: nameTm || existingProduct.nameTm,
       order: Number(order) || existingProduct.order,
-      incomePrice:
-        parseFloat(incomePrice).toFixed(2) || existingProduct.incomePrice,
+      incomePrice: 0,
       sellPrice: parseFloat(sellPrice).toFixed(2) || existingProduct.sellPrice,
       discountType:
         discountType && ["FIXED", "PERCENTAGE"].includes(discountType)
@@ -792,6 +886,12 @@ const updateProduct = asyncHandler(async (req, res) => {
       },
       descriptionTm: descriptionTm || existingProduct.descriptionTm,
       descriptionRu: descriptionRu || existingProduct.descriptionRu,
+      usageTm: usageTm || existingProduct.usageTm,
+      usageRu: usageRu || existingProduct.usageRu,
+      ingredientsTm: ingredientsTm || existingProduct.ingredientsTm,
+      ingredientsRu: ingredientsRu || existingProduct.ingredientsRu,
+      additionalInfoTm: additionalInfoTm || existingProduct.additionalInfoTm,
+      additionalInfoRu: additionalInfoRu || existingProduct.additionalInfoRu,
       limit:
         limit !== undefined && limit !== null && limit !== ""
           ? Number(limit)
@@ -821,6 +921,12 @@ const updateProduct = asyncHandler(async (req, res) => {
     if (segmentId?.length > 10) {
       updatedProductData.Segment = {
         connect: { id: segmentId },
+      };
+    }
+
+    if (brandId?.length > 10) {
+      updatedProductData.Brand = {
+        connect: { id: brandId },
       };
     }
 

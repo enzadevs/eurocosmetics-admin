@@ -30,6 +30,12 @@ model Product {
     imageFive        String?
     descriptionTm    String?
     descriptionRu    String?
+    usageTm          String?
+    usageRu          String?
+    ingredientsTm    String?
+    ingredientsRu    String?
+    additionalInfoTm String?
+    additionalInfoRu String?
     waitListCount    Decimal?       @default(0)
     limit            Decimal?
     isActive         Boolean?       @default(true)
@@ -49,8 +55,11 @@ model Product {
     PopUp            PopUp[]
     Story            Story[]
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    createdAt     DateTime        @default(now())
+    updatedAt     DateTime        @updatedAt
+    MiniBannerOne MiniBannerOne[]
+    MiniBannerTwo MiniBannerTwo[]
+    GiftCardMain  GiftCardMain[]
 
     @@index(fields: [barcode, nameTm, nameRu, currentSellPrice, productStatusId, brandId, categoryId, subCategoryId, segmentId, isDisabled])
     @@index([brandId])
@@ -74,19 +83,22 @@ model Brand {
     Banner        Banner[]
     PopUp         PopUp[]
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-    Story     Story[]
+    createdAt     DateTime        @default(now())
+    updatedAt     DateTime        @updatedAt
+    Story         Story[]
+    MiniBannerOne MiniBannerOne[]
+    MiniBannerTwo MiniBannerTwo[]
+    GiftCardMain  GiftCardMain[]
 }
 
 model Category {
-    id            String        @id @unique @default(uuid())
+    id            String          @id @unique @default(uuid())
     nameTm        String?
     nameRu        String?
     order         Int?
     image         String?
     coverImage    String?
-    isActive      Boolean?      @default(true)
+    isActive      Boolean?        @default(true)
     discountType  DiscountType?
     discountValue Decimal?
     Products      Product[]
@@ -94,43 +106,52 @@ model Category {
     Banner        Banner[]
     PopUp         PopUp[]
     Story         Story[]
+    MiniBannerOne MiniBannerOne[]
+    MiniBannerTwo MiniBannerTwo[]
+    GiftCardMain  GiftCardMain[]
 }
 
 model SubCategory {
-    id            String        @id @unique @default(uuid())
+    id            String          @id @unique @default(uuid())
     nameTm        String?
     nameRu        String?
     order         Int?
     image         String?
     coverImage    String?
-    isActive      Boolean?      @default(true)
+    isActive      Boolean?        @default(true)
     discountType  DiscountType?
     discountValue Decimal?
-    Category      Category      @relation(fields: [categoryId], references: [id])
+    Category      Category        @relation(fields: [categoryId], references: [id])
     categoryId    String
     Products      Product[]
     Segments      Segment[]
     Banner        Banner[]
     PopUp         PopUp[]
     Story         Story[]
+    MiniBannerOne MiniBannerOne[]
+    MiniBannerTwo MiniBannerTwo[]
+    GiftCardMain  GiftCardMain[]
 }
 
 model Segment {
-    id            String        @id @unique @default(uuid())
+    id            String          @id @unique @default(uuid())
     nameTm        String?
     nameRu        String?
     order         Int?
     image         String?
     coverImage    String?
-    isActive      Boolean?      @default(true)
+    isActive      Boolean?        @default(true)
     discountType  DiscountType?
     discountValue Decimal?
-    SubCategory   SubCategory   @relation(fields: [subCategoryId], references: [id])
+    SubCategory   SubCategory     @relation(fields: [subCategoryId], references: [id])
     subCategoryId String
     Products      Product[]
     Banner        Banner[]
     PopUp         PopUp[]
     Story         Story[]
+    MiniBannerOne MiniBannerOne[]
+    MiniBannerTwo MiniBannerTwo[]
+    GiftCardMain  GiftCardMain[]
 }
 
 model ProductStatus {
@@ -168,6 +189,8 @@ model Order {
     orderStatusId          Int?
     CourierLang            CourierLang?          @relation(fields: [courierLangId], references: [id])
     courierLangId          Int?
+    OrderMessage           OrderMessage?         @relation(fields: [orderMessageId], references: [id])
+    orderMessageId         Int?
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -330,6 +353,118 @@ model Banner {
     video          String?
     mobileVideo    String?
     videoDuration  String?
+    headerTm       String?
+    headerRu       String?
+    descriptionTm  String?
+    descriptionRu  String?
+    order          Int?
+    startDate      DateTime?
+    endDate        DateTime?
+    isActive       Boolean?     @default(true)
+    Product        Product?     @relation(fields: [productBarcode], references: [barcode])
+    productBarcode String?
+    ProductsArray  String[]
+    Category       Category?    @relation(fields: [categoryId], references: [id])
+    categoryId     String?
+    SubCategory    SubCategory? @relation(fields: [subCategoryId], references: [id])
+    subCategoryId  String?
+    Segment        Segment?     @relation(fields: [segmentId], references: [id])
+    segmentId      String?
+    Brand          Brand?       @relation(fields: [brandId], references: [id])
+    brandId        String?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([productBarcode, categoryId, subCategoryId, segmentId, brandId])
+}
+
+model MiniBannerOne {
+    id             Int          @id @unique @default(autoincrement())
+    name           String?
+    link           String?
+    image          String?
+    mobileImage    String?
+    video          String?
+    mobileVideo    String?
+    videoDuration  String?
+    headerTm       String?
+    headerRu       String?
+    descriptionTm  String?
+    descriptionRu  String?
+    order          Int?
+    startDate      DateTime?
+    endDate        DateTime?
+    isActive       Boolean?     @default(true)
+    Product        Product?     @relation(fields: [productBarcode], references: [barcode])
+    productBarcode String?
+    ProductsArray  String[]
+    Category       Category?    @relation(fields: [categoryId], references: [id])
+    categoryId     String?
+    SubCategory    SubCategory? @relation(fields: [subCategoryId], references: [id])
+    subCategoryId  String?
+    Segment        Segment?     @relation(fields: [segmentId], references: [id])
+    segmentId      String?
+    Brand          Brand?       @relation(fields: [brandId], references: [id])
+    brandId        String?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([productBarcode, categoryId, subCategoryId, segmentId, brandId])
+}
+
+model MiniBannerTwo {
+    id             Int          @id @unique @default(autoincrement())
+    name           String?
+    link           String?
+    image          String?
+    mobileImage    String?
+    video          String?
+    mobileVideo    String?
+    videoDuration  String?
+    headerTm       String?
+    headerRu       String?
+    descriptionTm  String?
+    descriptionRu  String?
+    blogerName     String?
+    contentTm      String?
+    contentRu      String?
+    order          Int?
+    startDate      DateTime?
+    endDate        DateTime?
+    isActive       Boolean?     @default(true)
+    Product        Product?     @relation(fields: [productBarcode], references: [barcode])
+    productBarcode String?
+    ProductsArray  String[]
+    Category       Category?    @relation(fields: [categoryId], references: [id])
+    categoryId     String?
+    SubCategory    SubCategory? @relation(fields: [subCategoryId], references: [id])
+    subCategoryId  String?
+    Segment        Segment?     @relation(fields: [segmentId], references: [id])
+    segmentId      String?
+    Brand          Brand?       @relation(fields: [brandId], references: [id])
+    brandId        String?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([productBarcode, categoryId, subCategoryId, segmentId, brandId])
+}
+
+model GiftCardMain {
+    id             Int          @id @unique @default(autoincrement())
+    name           String?
+    link           String?
+    image          String?
+    mobileImage    String?
+    video          String?
+    mobileVideo    String?
+    videoDuration  String?
+    headerTm       String?
+    headerRu       String?
+    descriptionTm  String?
+    descriptionRu  String?
     order          Int?
     startDate      DateTime?
     endDate        DateTime?
@@ -391,6 +526,25 @@ model SearchQuery {
     count Int     @default(1)
 
     @@index([query])
+}
+
+model OrderMessage {
+    id       Int      @id @unique @default(autoincrement())
+    title    String?
+    content  String?
+    isActive Boolean? @default(false)
+
+    createdAt DateTime @default(now())
+    Order     Order[]
+}
+
+model MarketingMessage {
+    id       Int      @id @unique @default(autoincrement())
+    title    String?
+    content  String?
+    isActive Boolean? @default(false)
+
+    createdAt DateTime @default(now())
 }
 
 model CourierLang {

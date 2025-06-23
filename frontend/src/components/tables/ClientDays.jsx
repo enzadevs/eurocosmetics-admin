@@ -8,7 +8,7 @@ import { useState, useEffect, useRef } from "react";
 import { Search, ArrowUp, ArrowDown } from "lucide-react";
 
 const fetchBanners = async (filters) => {
-  const response = await fetch(`${apiUrl}/banners/all`, {
+  const response = await fetch(`${apiUrl}/minitwo/all`, {
     method: "POST",
     body: JSON.stringify({
       page: filters.page || 1,
@@ -22,7 +22,7 @@ const fetchBanners = async (filters) => {
   return data;
 };
 
-export default function BannersTable() {
+export default function ClientDays() {
   const [data, setData] = useState([]);
   const [sortedRows, setSortedRows] = useState([]);
   const [sortBy, setSortBy] = useState(null);
@@ -141,7 +141,7 @@ export default function BannersTable() {
                   key={index}
                   onClick={() => {
                     NProgress.start();
-                    router.push(`/home/banners/${row.id}`);
+                    router.push(`/home/minitwo/${row.id}`);
                   }}
                   className="border-b border-support-200 dark:border-grey-700 cursor-pointer transition hover:bg-white dark:hover:bg-dark"
                 >

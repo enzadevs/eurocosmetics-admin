@@ -164,7 +164,7 @@ export default function CategorySelectorP({
 
   return (
     <div className="flex flex-col gap-1 w-full">
-      <div className="flex items-center justify-between h-9 md:h-10 w-full">
+      <div className="flex items-center gap-1 justify-between h-9 md:h-10 w-full">
         <p className="min-w-32">Категория</p>
         <Combobox
           value={comboboxSelectedCategory}
@@ -196,7 +196,7 @@ export default function CategorySelectorP({
           </ComboboxOptions>
         </Combobox>
       </div>
-      <div className="flex items-center justify-between h-9 md:h-10 w-full">
+      <div className="flex items-center gap-1 justify-between h-9 md:h-10 w-full">
         <p className="min-w-32">Подкатегория:</p>
         <Combobox
           value={comboboxSelectedSubCategory}
@@ -228,7 +228,7 @@ export default function CategorySelectorP({
           </ComboboxOptions>
         </Combobox>
       </div>
-      <div className="flex items-center justify-between h-9 md:h-10 w-full">
+      {/* <div className="flex items-center justify-between h-9 md:h-10 w-full">
         <p className="min-w-32">Сегмент:</p>
         <Combobox
           value={comboboxSelectedSegment}
@@ -259,7 +259,7 @@ export default function CategorySelectorP({
             ))}
           </ComboboxOptions>
         </Combobox>
-      </div>
+      </div> */}
     </div>
   );
 }

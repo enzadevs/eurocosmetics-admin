@@ -35,20 +35,28 @@ router.use("/orderstatuses", orderStatusesRouter);
 import actionsRouter from "./actions/actions.js";
 import popUpRouter from "./manage/popup.js";
 import bannersRouter from "./manage/banners.js";
+import miniBannersOneRouter from "./manage/minione.js";
+import miniBannersTwoRouter from "./manage/minitwo.js";
+import giftCardMainRouter from "./manage//gifcardmain.js";
 import storiesRouter from "./manage/stories.js";
 import settingsRouter from "./manage/settings.js";
 import analyticsRouter from "./actions/analytics.js";
 import syncRouter from "./actions/sync.js";
 import pushNotificationsRouter from "./actions/push.js";
+import marketingRouter from "./actions/marketing.js";
 import uploadsRouter from "./static.js";
 router.use("/actions", actionsRouter);
 router.use("/popup", popUpRouter);
 router.use("/banners", bannersRouter);
+router.use("/minione", miniBannersOneRouter);
+router.use("/minitwo", miniBannersTwoRouter);
+router.use("/giftcard", giftCardMainRouter);
 router.use("/stories", storiesRouter);
 router.use("/settings", settingsRouter);
 router.use("/analytics", analyticsRouter);
 router.use("/synchronize", syncRouter);
 router.use("/push", pushNotificationsRouter);
+router.use("/marketing", marketingRouter);
 router.use("/uploads/", uploadsRouter);
 
 // ? User routes

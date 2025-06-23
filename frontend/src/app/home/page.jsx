@@ -18,10 +18,14 @@ import {
   ChartSpline,
   Cog,
   MessageSquareText,
+  Send,
   Info,
   SquareTerminal,
   UserCog,
   FileVideo,
+  Percent,
+  Gift,
+  Sparkles,
 } from "lucide-react";
 import { cloneElement } from "react";
 
@@ -97,6 +101,24 @@ export default function HomePage() {
       roles: ["ADMIN", "MANAGER"],
     },
     {
+      url: "/home/minione",
+      icon: <Percent />,
+      title: "Специальные акции",
+      roles: ["ADMIN", "MANAGER"],
+    },
+    {
+      url: "/home/minitwo",
+      icon: <Sparkles />,
+      title: "Советы блогеров",
+      roles: ["ADMIN", "MANAGER"],
+    },
+    {
+      url: "/home/giftcard",
+      icon: <Gift />,
+      title: "Гифт карты",
+      roles: ["ADMIN", "MANAGER"],
+    },
+    {
       url: "/home/manage/customers",
       icon: <UserCog />,
       title: "Клиенты",
@@ -118,6 +140,12 @@ export default function HomePage() {
       url: "/home/push",
       icon: <MessageSquareText />,
       title: "Пуш уведомления",
+      roles: ["ADMIN", "MANAGER"],
+    },
+    {
+      url: "/home/marketing",
+      icon: <Send />,
+      title: "СМС рассылка",
       roles: ["ADMIN", "MANAGER"],
     },
     {
@@ -151,7 +179,7 @@ export default function HomePage() {
       <div className="center-row h-12">
         <h2>Добро пожаловать</h2>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 mb-4">
         {buttons
           .filter((button) => button.roles.includes(role))
           .map(({ url, icon, title }) => (

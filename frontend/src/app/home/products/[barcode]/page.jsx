@@ -1,12 +1,14 @@
 "use client";
 
-import * as NProgress from "nprogress";
+import Link from "next/link";
 import clsx from "clsx";
+import * as NProgress from "nprogress";
 import BackForthButtons from "@/components/nav/BackForthButtons";
 import CategorySelectorP from "@/components/selectors/CategorySelectorP";
 import ProductStatusSelectorP from "@/components/selectors/ProductStatusSelectorP";
 import UnitSelectorP from "@/components/selectors/UnitSelectorP";
 import DiscountSelector from "@/components/selectors/DiscountSelector";
+import BrandSelectorP from "@/components/selectors/BrandSelectorP";
 import ProductSwiper from "@/components/containers/ProductSwiper";
 import ImagesSwiper from "@/components/containers/ImagesSwiper";
 import { newAction } from "@/components/utils/ActionLogs";
@@ -18,7 +20,6 @@ import { useForm } from "react-hook-form";
 import { useState, useRef, useEffect } from "react";
 import { Switch, Textarea, Field, Description } from "@headlessui/react";
 import { Save } from "lucide-react";
-import Link from "next/link";
 
 const fetchProductInfo = async (barcode) => {
   const response = await fetch(`${apiUrl}/products/admin/${barcode}`);
@@ -101,10 +102,6 @@ export default function UpdateProductPage({ params }) {
       formData.append("nameTm", data.nameTm);
       formData.append("nameRu", data.nameRu);
       formData.append(
-        "incomePrice",
-        data.incomePrice || productData?.incomePrice || 0
-      );
-      formData.append(
         "sellPrice",
         data.sellPrice || productData?.sellPrice || 0
       );
@@ -123,6 +120,12 @@ export default function UpdateProductPage({ params }) {
 
       formData.append("descriptionTm", data.descriptionTm || "");
       formData.append("descriptionRu", data.descriptionRu || "");
+      formData.append("usageTm", data.usageTm || "");
+      formData.append("usageRu", data.usageRu || "");
+      formData.append("ingredientsTm", data.ingredientsTm || "");
+      formData.append("ingredientsRu", data.ingredientsRu || "");
+      formData.append("additionalInfoTm", data.additionalInfoTm || "");
+      formData.append("additionalInfoRu", data.additionalInfoRu || "");
       formData.append("brandId", brandIdRef.current);
       formData.append("categoryId", categoryIdRef.current);
       formData.append("subCategoryId", subCategoryIdRef.current);
@@ -132,6 +135,7 @@ export default function UpdateProductPage({ params }) {
       formData.append("discountType", discountTypeRef.current);
       formData.append("discountValue", discountValueRef.current);
       formData.append("isActive", isActive);
+
       if (Array.isArray(productImages) && productImages.length > 0) {
         productImages.forEach((image, index) => {
           if (image) {
@@ -266,26 +270,6 @@ export default function UpdateProductPage({ params }) {
             </div>
             <div className="flex flex-col md:flex-row items-center gap-2">
               <div className="center-row gap-1 w-full">
-                <p className="min-w-32">Цена(приход):</p>
-                <input
-                  type="text"
-                  className="input-primary dark:text-support px-2"
-                  defaultValue={productData?.incomePrice}
-                  placeholder="Цена (приход)"
-                  {...register("incomePrice", {
-                    validate: (value) => {
-                      if (isNaN(value)) {
-                        ErrorToast({
-                          errorText: "Пожалуйста, введите число в поле приход.",
-                        });
-                        return false;
-                      }
-                      return true;
-                    },
-                  })}
-                />
-              </div>
-              <div className="center-row gap-1 w-full">
                 <p className="min-w-32">Цена (продажа):</p>
                 <input
                   type="text"
@@ -377,7 +361,7 @@ export default function UpdateProductPage({ params }) {
                   )}
                   placeholder="Описание (ткм.)"
                   defaultValue={productData?.descriptionTm}
-                  rows={4}
+                  rows={2}
                 />
               </Field>
               <Field className="flex flex-col w-full">
@@ -390,9 +374,104 @@ export default function UpdateProductPage({ params }) {
                   )}
                   placeholder="Описание (ру.)"
                   defaultValue={productData?.descriptionRu}
-                  rows={4}
+                  rows={2}
                 />
               </Field>
+            </div>
+            <div className="flex flex-col md:flex-row items-center gap-2">
+              <Field className="flex flex-col w-full">
+                <Description className="min-w-32">
+                  Способ применения (ткм.)
+                </Description>
+                <Textarea
+                  {...register("usageTm")}
+                  className={clsx(
+                    "bg-white dark:bg-darkTwo basic-border rounded text-dark dark:text-support block resize-y transition-all py-2 px-2 min-h-14 w-full",
+                    "data-[focus]:outline-2 data-[focus]:-outline-offset-2 data-[focus]:outline-primary"
+                  )}
+                  placeholder="Способ применения (ткм.)"
+                  defaultValue={productData?.usageTm}
+                  rows={2}
+                />
+              </Field>
+              <Field className="flex flex-col w-full">
+                <Description className="min-w-32">
+                  Способ применения (ру.)
+                </Description>
+                <Textarea
+                  {...register("usageRu")}
+                  className={clsx(
+                    "bg-white dark:bg-darkTwo basic-border rounded text-dark dark:text-support block resize-y transition-all py-2 px-2 min-h-14 w-full",
+                    "data-[focus]:outline-2 data-[focus]:-outline-offset-2 data-[focus]:outline-primary"
+                  )}
+                  placeholder="Способ применения (ру.)"
+                  defaultValue={productData?.usageRu}
+                  rows={2}
+                />
+              </Field>
+            </div>
+            <div className="flex flex-col md:flex-row items-center gap-2">
+              <Field className="flex flex-col w-full">
+                <Description className="min-w-32">Состав (ткм.)</Description>
+                <Textarea
+                  {...register("ingredientsTm")}
+                  className={clsx(
+                    "bg-white dark:bg-darkTwo basic-border rounded text-dark dark:text-support block resize-y transition-all py-2 px-2 min-h-14 w-full",
+                    "data-[focus]:outline-2 data-[focus]:-outline-offset-2 data-[focus]:outline-primary"
+                  )}
+                  placeholder="Состав (ткм.)"
+                  defaultValue={productData?.ingredientsTm}
+                  rows={2}
+                />
+              </Field>
+              <Field className="flex flex-col w-full">
+                <Description className="min-w-32">Состав (ру.)</Description>
+                <Textarea
+                  {...register("ingredientsRu")}
+                  className={clsx(
+                    "bg-white dark:bg-darkTwo basic-border rounded text-dark dark:text-support block resize-y transition-all py-2 px-2 min-h-14 w-full",
+                    "data-[focus]:outline-2 data-[focus]:-outline-offset-2 data-[focus]:outline-primary"
+                  )}
+                  placeholder="Состав (ру.)"
+                  defaultValue={productData?.ingredientsRu}
+                  rows={2}
+                />
+              </Field>
+            </div>
+            <div className="flex flex-col md:flex-row items-center gap-2">
+              <Field className="flex flex-col w-full">
+                <Description className="min-w-32">Доп. инфо (ткм.)</Description>
+                <Textarea
+                  {...register("additionalInfoTm")}
+                  className={clsx(
+                    "bg-white dark:bg-darkTwo basic-border rounded text-dark dark:text-support block resize-y transition-all py-2 px-2 min-h-14 w-full",
+                    "data-[focus]:outline-2 data-[focus]:-outline-offset-2 data-[focus]:outline-primary"
+                  )}
+                  placeholder="Доп. инфо (ткм.)"
+                  defaultValue={productData?.additionalInfoTm}
+                  rows={2}
+                />
+              </Field>
+              <Field className="flex flex-col w-full">
+                <Description className="min-w-32">Доп. инфо (ру.)</Description>
+                <Textarea
+                  {...register("additionalInfoRu")}
+                  className={clsx(
+                    "bg-white dark:bg-darkTwo basic-border rounded text-dark dark:text-support block resize-y transition-all py-2 px-2 min-h-14 w-full",
+                    "data-[focus]:outline-2 data-[focus]:-outline-offset-2 data-[focus]:outline-primary"
+                  )}
+                  placeholder="Доп. инфо (ру.)"
+                  defaultValue={productData?.additionalInfoRu}
+                  rows={2}
+                />
+              </Field>
+            </div>
+            <div className="center-row gap-1 w-full">
+              <p className="min-w-32">Бренд</p>
+              <BrandSelectorP
+                passedProp={brandIdRef}
+                data={productData?.Brand}
+              />
             </div>
             <CategorySelectorP
               categoryIdRef={categoryIdRef}
@@ -498,19 +577,23 @@ export default function UpdateProductPage({ params }) {
                 >
                   <div className="center-row justify-between">
                     <p>Номер заказа :</p>
-                    <p className="text-primary font-bold">{item?.orderId}</p>
+                    <p className="text-primary font-bold text-end">
+                      {item?.orderId}
+                    </p>
                   </div>
                   <div className="center-row justify-between">
                     <p>Количество</p>
-                    <p className="font-medium">{item?.quantity}</p>
+                    <p className="font-medium text-end">{item?.quantity}</p>
                   </div>
                   <div className="center-row justify-between">
                     <p>Цена</p>
-                    <p className="font-medium">{item?.currentSellPrice}</p>
+                    <p className="font-medium text-end">
+                      {item?.currentSellPrice}
+                    </p>
                   </div>
                   <div className="center-row justify-between">
                     <p>Дата заказа</p>
-                    <p className="font-medium">
+                    <p className="font-medium text-end">
                       {new Date(item?.Order?.createdAt).toLocaleString(
                         "en-GB",
                         {

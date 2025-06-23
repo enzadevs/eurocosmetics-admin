@@ -12,7 +12,6 @@ const upload = multer({ storage: storage });
 const optimizeAndSaveImage = async (buffer, filename) => {
   const optimizedImagePath = join("uploads/banner/", filename);
   await sharp(buffer, { failOnError: false })
-    .resize(3000)
     .jpeg({ quality: 100 })
     .toFile(optimizedImagePath);
   return optimizedImagePath;
@@ -29,11 +28,11 @@ const fetchAllBanners = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10 } = req.body;
 
   try {
-    const bannersCount = await prisma.banner.count();
+    const bannersCount = await prisma.miniBannerTwo.count();
     const totalPages = Math.ceil(bannersCount / limit);
     const currentPage = Math.max(1, Math.min(page, totalPages));
 
-    const banners = await prisma.banner.findMany({
+    const banners = await prisma.miniBannerTwo.findMany({
       skip: (currentPage - 1) * limit,
       take: limit,
       orderBy: { order: "asc" },
@@ -70,7 +69,7 @@ const fetchAllBanners = asyncHandler(async (req, res) => {
 
 const fetchActiveBanners = asyncHandler(async (req, res) => {
   try {
-    const banners = await prisma.banner.findMany({
+    const banners = await prisma.miniBannerTwo.findMany({
       where: {
         isActive: true,
         startDate: { lte: new Date() },
@@ -113,7 +112,7 @@ const fetchBannerById = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
   try {
-    const banner = await prisma.banner.findUnique({
+    const banner = await prisma.miniBannerTwo.findUnique({
       where: { id: Number(id) },
       include: {
         Product: true,
@@ -164,6 +163,9 @@ const fetchBannerById = asyncHandler(async (req, res) => {
           stock: true,
           imageOne: true,
           limit: true,
+          Category: true,
+          SubCategory: true,
+          Segment: true,
         },
       });
     }
@@ -200,6 +202,9 @@ const newBanner = asyncHandler(async (req, res) => {
     headerRu,
     descriptionTm,
     descriptionRu,
+    blogerName,
+    contentTm,
+    contentRu,
   } = req.body;
 
   const getNullOrValue = (value) =>
@@ -256,6 +261,9 @@ const newBanner = asyncHandler(async (req, res) => {
     headerRu,
     descriptionTm,
     descriptionRu,
+    blogerName,
+    contentTm,
+    contentRu,
     videoDuration,
     isActive: JSON.parse(isActive),
     ProductsArray: JSON.parse(productsArray),
@@ -280,7 +288,7 @@ const newBanner = asyncHandler(async (req, res) => {
     bannerData.Brand = { connect: { id: brandId } };
 
   try {
-    await prisma.banner.create({ data: bannerData });
+    await prisma.miniBannerTwo.create({ data: bannerData });
     res.status(201).json({ message: "Баннер успешно создан." });
   } catch (err) {
     console.log(err);
@@ -308,13 +316,16 @@ const updateBanner = asyncHandler(async (req, res) => {
     headerRu,
     descriptionTm,
     descriptionRu,
+    blogerName,
+    contentTm,
+    contentRu,
   } = req.body;
 
   const getNullOrValue = (value) =>
     value === "null" || value === "" ? null : value;
 
   try {
-    const existingBanner = await prisma.banner.findUnique({
+    const existingBanner = await prisma.miniBannerTwo.findUnique({
       where: { id: Number(id) },
     });
 
@@ -372,6 +383,9 @@ const updateBanner = asyncHandler(async (req, res) => {
       headerRu: headerRu || existingBanner.headerRu,
       descriptionTm: descriptionTm || existingBanner.descriptionTm,
       descriptionRu: descriptionRu || existingBanner.descriptionRu,
+      blogerName: blogerName || existingBanner.blogerName,
+      contentTm: contentTm || existingBanner.contentTm,
+      contentRu: contentRu || existingBanner.contentRu,
       order: order ? Number(order) : existingBanner.order,
       isActive: isActive ? JSON.parse(isActive) : existingBanner.isActive,
       videoDuration: videoDuration
@@ -419,7 +433,7 @@ const updateBanner = asyncHandler(async (req, res) => {
       newBannerData.Brand = { disconnect: true };
     }
 
-    await prisma.banner.update({
+    await prisma.miniBannerTwo.update({
       where: { id: Number(id) },
       data: newBannerData,
     });
@@ -435,7 +449,7 @@ const deleteBanner = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
   try {
-    const banner = await prisma.banner.delete({
+    const banner = await prisma.miniBannerTwo.delete({
       where: { id: Number(id) },
     });
     return banner

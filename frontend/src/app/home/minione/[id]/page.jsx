@@ -19,7 +19,7 @@ import { Switch } from "@headlessui/react";
 import { Save, Trash2, ImagePlus } from "lucide-react";
 
 const fetchBannerData = async (id) => {
-  const response = await fetch(`${apiUrl}/banners/fetch/${id}`);
+  const response = await fetch(`${apiUrl}/minione/fetch/${id}`);
   const data = await response.json();
   return data;
 };
@@ -149,7 +149,7 @@ export default function UpdateBannerPage({ params }) {
       }
 
       const response = await fetch(
-        `${apiUrl}/banners/update/${Number(params.id)}`,
+        `${apiUrl}/minione/update/${Number(params.id)}`,
         {
           method: "PATCH",
           body: formData,
@@ -157,17 +157,17 @@ export default function UpdateBannerPage({ params }) {
       );
 
       if (response.ok) {
-        SuccessToast({ successText: "Баннер обновлен." });
+        SuccessToast({ successText: "Акция обновлена." });
 
         newAction(
           admin?.user?.Role,
           admin?.user?.username,
-          `Обновил баннер с ID : ${params.id}`,
+          `Обновил акцию с ID : ${params.id}`,
           "UPDATE"
         );
 
         NProgress.start();
-        router.push("/home/banners");
+        router.push("/home/minione");
       } else {
         const data = await response.json();
         ErrorToast({ errorText: data.message });
@@ -179,14 +179,14 @@ export default function UpdateBannerPage({ params }) {
 
   const handleDelete = async () => {
     try {
-      const response = await fetch(`${apiUrl}/banners/delete/${params.id}`, {
+      const response = await fetch(`${apiUrl}/minione/delete/${params.id}`, {
         method: "DELETE",
       });
 
       if (response.ok) {
-        SuccessToast({ successText: "Баннер удален." });
+        SuccessToast({ successText: "Акция удалена." });
         NProgress.start();
-        router.push("/home/banners");
+        router.push("/home/minione");
       } else {
         const data = await response.json();
         ErrorToast({ errorText: data.message });
@@ -198,7 +198,7 @@ export default function UpdateBannerPage({ params }) {
 
   const confirmDelete = (event) => {
     event.preventDefault();
-    if (window.confirm(`Вы уверены, что хотите удалить баннер?`)) {
+    if (window.confirm(`Вы уверены, что хотите удалить акцию?`)) {
       handleDelete();
     }
   };
@@ -266,7 +266,7 @@ export default function UpdateBannerPage({ params }) {
     <div className="flex flex-col">
       <div className="center-row h-12">
         <BackForthButtons />
-        <h2 className="ml-auto md:ml-0">Обновить баннер</h2>
+        <h2 className="ml-auto md:ml-0">Обновить акцию</h2>
       </div>
       <div className="center-col w-full">
         <div className="dark:bg-darkTwo w-full max-w-3xl">
@@ -574,7 +574,7 @@ export default function UpdateBannerPage({ params }) {
             </div>
             <div className="flex flex-row mb-2 gap-2 w-full">
               <div className="bg-white dark:bg-dark basic-border-2 center-row gap-4 p-2 h-9 md:h-10 w-full">
-                <p className="w-32">Баннер активен:</p>
+                <p className="w-32">Акция активна:</p>
                 <Switch
                   checked={isActive}
                   onChange={() => {

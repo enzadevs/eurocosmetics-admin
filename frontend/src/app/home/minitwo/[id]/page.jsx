@@ -1,10 +1,10 @@
 "use client";
 
+import clsx from "clsx";
 import Image from "next/image";
 import CategoryPicker from "@/components/pickers/CategoryPicker";
 import SubCategoryPicker from "@/components/pickers/SubCategoryPicker";
 import SegmentPicker from "@/components/pickers/SegmentPicker";
-import ProductPicker from "@/components/pickers/ProductPicker";
 import BackForthButtons from "@/components/nav/BackForthButtons";
 import ProductsList from "@/components/tables/ProductsList";
 import * as NProgress from "nprogress";
@@ -15,11 +15,11 @@ import { SuccessToast, ErrorToast } from "@/components/utils/utils";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { useState, useEffect, useRef } from "react";
-import { Switch } from "@headlessui/react";
+import { Switch, Field, Textarea, Description } from "@headlessui/react";
 import { Save, Trash2, ImagePlus } from "lucide-react";
 
 const fetchBannerData = async (id) => {
-  const response = await fetch(`${apiUrl}/banners/fetch/${id}`);
+  const response = await fetch(`${apiUrl}/minitwo/fetch/${id}`);
   const data = await response.json();
   return data;
 };
@@ -89,6 +89,9 @@ export default function UpdateBannerPage({ params }) {
         "descriptionRu",
         data.descriptionRu || bannerData?.descriptionRu
       );
+      formData.append("contentTm", data.contentTm || bannerData?.contentTm);
+      formData.append("contentRu", data.contentRu || bannerData?.contentRu);
+      formData.append("blogerName", "" || bannerData?.blogerName);
       formData.append("order", data.order || bannerData?.order);
       formData.append("isActive", isActive);
       formData.append("startDate", data.startDate || bannerData?.startDate);
@@ -149,7 +152,7 @@ export default function UpdateBannerPage({ params }) {
       }
 
       const response = await fetch(
-        `${apiUrl}/banners/update/${Number(params.id)}`,
+        `${apiUrl}/minitwo/update/${Number(params.id)}`,
         {
           method: "PATCH",
           body: formData,
@@ -157,17 +160,17 @@ export default function UpdateBannerPage({ params }) {
       );
 
       if (response.ok) {
-        SuccessToast({ successText: "Баннер обновлен." });
+        SuccessToast({ successText: "Совет обновлен." });
 
         newAction(
           admin?.user?.Role,
           admin?.user?.username,
-          `Обновил баннер с ID : ${params.id}`,
+          `Обновил совет с ID : ${params.id}`,
           "UPDATE"
         );
 
         NProgress.start();
-        router.push("/home/banners");
+        router.push("/home/minitwo");
       } else {
         const data = await response.json();
         ErrorToast({ errorText: data.message });
@@ -179,14 +182,14 @@ export default function UpdateBannerPage({ params }) {
 
   const handleDelete = async () => {
     try {
-      const response = await fetch(`${apiUrl}/banners/delete/${params.id}`, {
+      const response = await fetch(`${apiUrl}/minitwo/delete/${params.id}`, {
         method: "DELETE",
       });
 
       if (response.ok) {
-        SuccessToast({ successText: "Баннер удален." });
+        SuccessToast({ successText: "Совет удален." });
         NProgress.start();
-        router.push("/home/banners");
+        router.push("/home/minone");
       } else {
         const data = await response.json();
         ErrorToast({ errorText: data.message });
@@ -198,7 +201,7 @@ export default function UpdateBannerPage({ params }) {
 
   const confirmDelete = (event) => {
     event.preventDefault();
-    if (window.confirm(`Вы уверены, что хотите удалить баннер?`)) {
+    if (window.confirm(`Вы уверены, что хотите удалить совет?`)) {
       handleDelete();
     }
   };
@@ -266,7 +269,7 @@ export default function UpdateBannerPage({ params }) {
     <div className="flex flex-col">
       <div className="center-row h-12">
         <BackForthButtons />
-        <h2 className="ml-auto md:ml-0">Обновить баннер</h2>
+        <h2 className="ml-auto md:ml-0">Обновить совет</h2>
       </div>
       <div className="center-col w-full">
         <div className="dark:bg-darkTwo w-full max-w-3xl">
@@ -274,6 +277,16 @@ export default function UpdateBannerPage({ params }) {
             onSubmit={handleSubmit(updateData)}
             className="form-holder mb-2"
           >
+            <div className="center-row gap-1 w-full">
+              <p className="min-w-24 md:min-w-32">Номер:</p>
+              <input
+                type="number"
+                className="input-primary px-2 w-full"
+                defaultValue={bannerData?.order || ""}
+                placeholder="Номер"
+                {...register("order")}
+              />
+            </div>
             <div className="center-row gap-1 w-full">
               <p className="min-w-24 md:min-w-32">Оглавление (тм):</p>
               <input
@@ -315,16 +328,6 @@ export default function UpdateBannerPage({ params }) {
               />
             </div>
             <div className="center-row gap-1 w-full">
-              <p className="min-w-24 md:min-w-32">Номер:</p>
-              <input
-                type="number"
-                className="input-primary px-2 w-full"
-                defaultValue={bannerData?.order || ""}
-                placeholder="Номер"
-                {...register("order")}
-              />
-            </div>
-            <div className="center-row gap-1 w-full">
               <p className="min-w-24 md:min-w-32">Дата начала:</p>
               <input
                 type="date"
@@ -338,6 +341,36 @@ export default function UpdateBannerPage({ params }) {
                 {...register("startDate")}
               />
             </div>
+            <Field className="flex flex-col w-full">
+              <Description className="min-w-32">
+                Отзыв блогера (тм.):
+              </Description>
+              <Textarea
+                {...register("contentTm")}
+                className={clsx(
+                  "bg-white dark:bg-darkTwo basic-border-2 rounded text-dark dark:text-support block resize-y transition-all py-2 px-2 min-h-14 w-full",
+                  "data-[focus]:outline-2 data-[focus]:-outline-offset-2 data-[focus]:outline-primary"
+                )}
+                placeholder="Отзыв (тм.)"
+                defaultValue={bannerData?.contentTm}
+                rows={3}
+              />
+            </Field>
+            <Field className="flex flex-col w-full">
+              <Description className="min-w-32">
+                Отзыв блогера (ру):
+              </Description>
+              <Textarea
+                {...register("contentRu")}
+                className={clsx(
+                  "bg-white dark:bg-darkTwo basic-border-2 rounded text-dark dark:text-support block resize-y transition-all py-2 px-2 min-h-14 w-full",
+                  "data-[focus]:outline-2 data-[focus]:-outline-offset-2 data-[focus]:outline-primary"
+                )}
+                placeholder="Отзыв (ру)"
+                defaultValue={bannerData?.contentRu}
+                rows={3}
+              />
+            </Field>
             <div className="center-row gap-1 w-full">
               <p className="min-w-24 md:min-w-32">Дата окончания:</p>
               <input
@@ -391,14 +424,14 @@ export default function UpdateBannerPage({ params }) {
                 }
               />
             </div>
-            <ProductPicker
+            {/* <ProductPicker
               passedProp={productBarcodeRef}
               data={
                 bannerData?.link === bannerData?.Product?.barcode
                   ? bannerData?.Product
                   : {}
               }
-            />
+            /> */}
             <div label="Hashtags" className="center-row gap-1 w-full">
               <p className="min-w-24 md:min-w-32">Список товаров</p>
               <input
@@ -574,7 +607,7 @@ export default function UpdateBannerPage({ params }) {
             </div>
             <div className="flex flex-row mb-2 gap-2 w-full">
               <div className="bg-white dark:bg-dark basic-border-2 center-row gap-4 p-2 h-9 md:h-10 w-full">
-                <p className="w-32">Баннер активен:</p>
+                <p className="w-32">Совет активен:</p>
                 <Switch
                   checked={isActive}
                   onChange={() => {

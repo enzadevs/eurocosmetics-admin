@@ -35,14 +35,23 @@ export default function NewBannerPage() {
   const { admin } = useAdminStore();
 
   const createBannerRequest = async (data) => {
-    console.log(true);
-    const selectedOptions = [
+    if (
+      (selectedImage || selectedMobileImage) &&
+      (selectedVideo || selectedMobileVideo)
+    ) {
+      ErrorToast({
+        errorText: "Выберите либо изображения , либо видео .",
+      });
+      return;
+    }
+
+    const selectedLinkOptions = [
       categoryIdRef.current,
       subCategoryIdRef.current,
       segmentIdRef.current,
     ].filter(Boolean);
 
-    if (selectedOptions.length > 1) {
+    if (selectedLinkOptions.length > 1) {
       ErrorToast({
         errorText:
           "Выберите только категорию, подкатегорию, сегмент или товар чтобы прикрепить ссылку.",
@@ -67,7 +76,10 @@ export default function NewBannerPage() {
 
     try {
       const formData = new FormData();
-      formData.append("name", data.name);
+      formData.append("headerTm", data.headerTm);
+      formData.append("headerRu", data.headerRu);
+      formData.append("descriptionTm", data.descriptionTm);
+      formData.append("descriptionRu", data.descriptionRu);
       formData.append("order", data.order);
       formData.append("isActive", isActive);
       formData.append("image", selectedImage);
@@ -221,13 +233,43 @@ export default function NewBannerPage() {
             className="form-holder mb-2"
           >
             <div className="center-row gap-1 w-full">
-              <p className="min-w-24 md:min-w-32">Описание:</p>
+              <p className="min-w-24 md:min-w-32">Оглавление (тм):</p>
               <input
                 type="text"
                 className="input-primary px-2 w-full"
                 defaultValue=""
-                placeholder="Описание"
-                {...register("name")}
+                placeholder="Оглавление (ткм)"
+                {...register("headerTm")}
+              />
+            </div>
+            <div className="center-row gap-1 w-full">
+              <p className="min-w-24 md:min-w-32">Оглавление (ру):</p>
+              <input
+                type="text"
+                className="input-primary px-2 w-full"
+                defaultValue=""
+                placeholder="Оглавление (ру)"
+                {...register("headerRu")}
+              />
+            </div>
+            <div className="center-row gap-1 w-full">
+              <p className="min-w-24 md:min-w-32">Описание (тм):</p>
+              <input
+                type="text"
+                className="input-primary px-2 w-full"
+                defaultValue=""
+                placeholder="Описание (ткм)"
+                {...register("descriptionTm")}
+              />
+            </div>
+            <div className="center-row gap-1 w-full">
+              <p className="min-w-24 md:min-w-32">Описание (ру):</p>
+              <input
+                type="text"
+                className="input-primary px-2 w-full"
+                defaultValue=""
+                placeholder="Описание (ру)"
+                {...register("descriptionRu")}
               />
             </div>
             <div className="center-row gap-1 w-full">
@@ -302,7 +344,7 @@ export default function NewBannerPage() {
               </h3>
               <div className="flex flex-col md:flex-row md:justify-between gap-2 mb-4 w-full">
                 <div className="bg-support dark:bg-dark basic-border flex flex-col items-center justify-between gap-2 p-2 w-full md:w-1/2">
-                  <p className="text-center">Размер изображения 1000 x 500</p>
+                  <p className="text-center">Размер изображения 2000 x 1000</p>
                   {selectedImage ? (
                     <div className="rounded relative block h-[100px] md:h-[200px] w-[175px] md:w-[350px]">
                       {selectedImage && selectedImage instanceof File && (
@@ -360,8 +402,6 @@ export default function NewBannerPage() {
                 </div>
               </div>
             </div>
-
-            {/* Mobile Media Section */}
             <div className="w-full">
               <h3 className="text-lg font-semibold mb-2">
                 Медиа для мобильных устройств

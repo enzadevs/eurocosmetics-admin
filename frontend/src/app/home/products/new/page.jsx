@@ -7,6 +7,7 @@ import CategorySelectorP from "@/components/selectors/CategorySelectorP";
 import ProductStatusSelectorP from "@/components/selectors/ProductStatusSelectorP";
 import UnitSelectorP from "@/components/selectors/UnitSelectorP";
 import DiscountSelector from "@/components/selectors/DiscountSelector";
+import BrandSelectorP from "@/components/selectors/BrandSelectorP";
 import ProductSwiper from "@/components/containers/ProductSwiper";
 import { newAction } from "@/components/utils/ActionLogs";
 import { useAdminStore } from "@/components/utils/useAdminStore";
@@ -75,15 +76,12 @@ export default function NewProductPage() {
         error: "Имя товара на русском не может быть пустым.",
       },
       {
-        field: data.incomePrice,
-        error: "Поле 'Цена(приход)' не может быть пустым.",
-      },
-      {
         field: data.sellPrice,
         error: "Поле 'Цена(продажа)' не может быть пустым.",
       },
       { field: categoryIdRef.current, error: "Выберите категорию." },
       { field: subCategoryIdRef.current, error: "Выберите подкатегорию." },
+      { field: brandIdRef.current, error: "Выберите бренд." },
       { field: unitRef.current, error: "Выберите единицу измерения." },
     ];
 
@@ -106,10 +104,15 @@ export default function NewProductPage() {
       formData.append("order", data.order);
       formData.append("descriptionTm", data.descriptionTm || "");
       formData.append("descriptionRu", data.descriptionRu || "");
+      formData.append("usageTm", data.usageTm || "");
+      formData.append("usageRu", data.usageRu || "");
+      formData.append("ingredientsTm", data.ingredientsTm || "");
+      formData.append("ingredientsRu", data.ingredientsRu || "");
+      formData.append("additionalInfoTm", data.additionalInfoTm || "");
+      formData.append("additionalInfoRu", data.additionalInfoRu || "");
       formData.append("brandId", brandIdRef.current);
       formData.append("categoryId", categoryIdRef.current);
       formData.append("subCategoryId", subCategoryIdRef.current);
-      formData.append("segmentId", segmentIdRef.current);
       formData.append("unit", unitRef.current);
       formData.append("productStatusId", productStatusIdRef.current || 1);
       formData.append("discountType", discountTypeRef.current);
@@ -267,28 +270,6 @@ export default function NewProductPage() {
             <div className="flex flex-col md:flex-row items-center gap-2">
               <div className="center-row gap-1 w-full">
                 <p className="min-w-32">
-                  <span className="text-red-500">* </span>Цена (приход)
-                </p>
-                <input
-                  type="text"
-                  className="input-primary dark:text-support px-2 w-full"
-                  defaultValue="0"
-                  placeholder="Цена (приход)"
-                  {...register("incomePrice", {
-                    validate: (value) => {
-                      if (isNaN(value)) {
-                        ErrorToast({
-                          errorText: "Пожалуйста, введите число в поле приход.",
-                        });
-                        return false;
-                      }
-                      return true;
-                    },
-                  })}
-                />
-              </div>
-              <div className="center-row gap-1 w-full">
-                <p className="min-w-32">
                   <span className="text-red-500">* </span>Цена (продажа)
                 </p>
                 <input
@@ -348,12 +329,12 @@ export default function NewProductPage() {
                 <Textarea
                   {...register("descriptionTm")}
                   className={clsx(
-                    "bg-white dark:bg-darkTwo basic-border rounded text-dark dark:text-support block resize-y transition-all py-2 px-2 min-h-20 w-full",
+                    "bg-white dark:bg-darkTwo basic-border rounded text-dark dark:text-support block resize-y transition-all py-2 px-2 min-h-14 w-full",
                     "data-[focus]:outline-2 data-[focus]:-outline-offset-2 data-[focus]:outline-primary"
                   )}
                   placeholder="Описание (ткм.)"
                   defaultValue=""
-                  rows={4}
+                  rows={2}
                 />
               </Field>
               <Field className="flex flex-col w-full">
@@ -361,12 +342,100 @@ export default function NewProductPage() {
                 <Textarea
                   {...register("descriptionRu")}
                   className={clsx(
-                    "bg-white dark:bg-darkTwo basic-border rounded text-dark dark:text-support block resize-y transition-all py-2 px-2 min-h-20 w-full",
+                    "bg-white dark:bg-darkTwo basic-border rounded text-dark dark:text-support block resize-y transition-all py-2 px-2 min-h-14 w-full",
                     "data-[focus]:outline-2 data-[focus]:-outline-offset-2 data-[focus]:outline-primary"
                   )}
                   placeholder="Описание (ру.)"
                   defaultValue=""
-                  rows={4}
+                  rows={2}
+                />
+              </Field>
+            </div>
+            <div className="flex flex-col md:flex-row items-center gap-2">
+              <Field className="flex flex-col w-full">
+                <Description className="min-w-32">
+                  Способ применения (ткм.)
+                </Description>
+                <Textarea
+                  {...register("usageTm")}
+                  className={clsx(
+                    "bg-white dark:bg-darkTwo basic-border rounded text-dark dark:text-support block resize-y transition-all py-2 px-2 min-h-14 w-full",
+                    "data-[focus]:outline-2 data-[focus]:-outline-offset-2 data-[focus]:outline-primary"
+                  )}
+                  placeholder=" Способ применения (ткм.)"
+                  defaultValue=""
+                  rows={2}
+                />
+              </Field>
+              <Field className="flex flex-col w-full">
+                <Description className="min-w-32">
+                  Способ применения (ру.)
+                </Description>
+                <Textarea
+                  {...register("usageRu")}
+                  className={clsx(
+                    "bg-white dark:bg-darkTwo basic-border rounded text-dark dark:text-support block resize-y transition-all py-2 px-2 min-h-14 w-full",
+                    "data-[focus]:outline-2 data-[focus]:-outline-offset-2 data-[focus]:outline-primary"
+                  )}
+                  placeholder=" Способ применения (ру.)"
+                  defaultValue=""
+                  rows={2}
+                />
+              </Field>
+            </div>
+            <div className="flex flex-col md:flex-row items-center gap-2">
+              <Field className="flex flex-col w-full">
+                <Description className="min-w-32">Состав (ткм.)</Description>
+                <Textarea
+                  {...register("ingredientsTm")}
+                  className={clsx(
+                    "bg-white dark:bg-darkTwo basic-border rounded text-dark dark:text-support block resize-y transition-all py-2 px-2 min-h-14 w-full",
+                    "data-[focus]:outline-2 data-[focus]:-outline-offset-2 data-[focus]:outline-primary"
+                  )}
+                  placeholder="Состав (ткм.)"
+                  defaultValue=""
+                  rows={2}
+                />
+              </Field>
+              <Field className="flex flex-col w-full">
+                <Description className="min-w-32">Состав (ру.)</Description>
+                <Textarea
+                  {...register("ingredientsRu")}
+                  className={clsx(
+                    "bg-white dark:bg-darkTwo basic-border rounded text-dark dark:text-support block resize-y transition-all py-2 px-2 min-h-14 w-full",
+                    "data-[focus]:outline-2 data-[focus]:-outline-offset-2 data-[focus]:outline-primary"
+                  )}
+                  placeholder="Состав (ру.)"
+                  defaultValue=""
+                  rows={2}
+                />
+              </Field>
+            </div>
+            <div className="flex flex-col md:flex-row items-center gap-2">
+              <Field className="flex flex-col w-full">
+                <Description className="min-w-32">Доп. инфо (ткм.)</Description>
+                <Textarea
+                  {...register("additionalInfoTm")}
+                  className={clsx(
+                    "bg-white dark:bg-darkTwo basic-border rounded text-dark dark:text-support block resize-y transition-all py-2 px-2 min-h-14 w-full",
+                    "data-[focus]:outline-2 data-[focus]:-outline-offset-2 data-[focus]:outline-primary"
+                  )}
+                  placeholder="Доп. инфо (ткм.)"
+                  defaultValue=""
+                  rows={2}
+                />
+              </Field>
+              <Field className="flex flex-col w-full">
+                <Description className="min-w-32">Доп. инфо (ру.)</Description>
+                <Textarea
+                  {...register("additionalInfoRu")}
+                  className={clsx(
+                    "bg-white dark:bg-darkTwo basic-border rounded text-dark dark:text-support block resize-y transition-all py-2 px-2 min-h-14 w-full",
+                    "data-[focus]:outline-2 data-[focus]:-outline-offset-2 data-[focus]:outline-primary"
+                  )}
+                  placeholder="Доп. инфо (ру.)"
+                  defaultValue=""
+                  rows={2}
                 />
               </Field>
             </div>
@@ -376,6 +445,12 @@ export default function NewProductPage() {
                 subCategoryIdRef={subCategoryIdRef}
                 segmentIdRef={segmentIdRef}
               />
+            </div>
+            <div className="center-row gap-1 w-full">
+              <p className="min-w-32">
+                <span className="text-red-500">* </span>Бренд
+              </p>
+              <BrandSelectorP passedProp={brandIdRef} />
             </div>
             <div className="border-b border-support-200 flex flex-col md:flex-row gap-2 pb-2 w-full">
               <div className="center-row gap-1 w-full">

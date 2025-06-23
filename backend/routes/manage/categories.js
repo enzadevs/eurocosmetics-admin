@@ -38,21 +38,21 @@ const optimizeAndSaveImage = async (buffer, filename, mimetype) => {
   const relativePath = path.join("uploads/categories", filename);
   const absolutePath = path.join(process.cwd(), relativePath);
 
-  let sharpInstance = sharp(buffer, { failOnError: false }).resize(1000);
+  let sharpInstance = sharp(buffer, { failOnError: false }).resize(2000);
 
   switch (mimetype) {
     case "image/png":
-      sharpInstance = sharpInstance.png({ quality: 98 });
+      sharpInstance = sharpInstance.png({ quality: 100 });
       break;
     case "image/jpeg":
     case "image/jpg":
-      sharpInstance = sharpInstance.jpeg({ quality: 98 });
+      sharpInstance = sharpInstance.jpeg({ quality: 100 });
       break;
     case "image/webp":
-      sharpInstance = sharpInstance.webp({ quality: 98 });
+      sharpInstance = sharpInstance.webp({ quality: 100 });
       break;
     default:
-      sharpInstance = sharpInstance.jpeg({ quality: 98 });
+      sharpInstance = sharpInstance.jpeg({ quality: 100 });
   }
 
   await sharpInstance.toFile(absolutePath);

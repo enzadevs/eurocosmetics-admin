@@ -171,23 +171,25 @@ export default function OrderPage({ params }) {
     }
   };
 
-  const updateOrderStatusTwo = async (id) => {
+  const sendOrderMessage = async (id) => {
     try {
-      const response = await fetch(`${apiUrl}/orders/update/${params.id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ orderStatusId: id }),
-      });
+      const response = await fetch(
+        `${apiUrl}/marketing/message/create/${params.id}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       if (response.ok) {
-        SuccessToast({ successText: "Статус заказа обновлен." });
+        SuccessToast({ successText: "СМС отправлен." });
 
         newAction(
           admin?.user?.Role,
           admin?.user?.username,
-          `Обновил статус заказа номер : ${params?.id}`,
+          `Отправил СМС на заказ номер : ${params?.id}`,
           "UPDATE"
         );
       } else {
@@ -324,7 +326,7 @@ export default function OrderPage({ params }) {
   }
 
   const printCheck = () => {
-    updateOrderStatusTwo(2);
+    sendOrderMessage(2);
     window.print();
 
     newAction(
@@ -451,7 +453,7 @@ export default function OrderPage({ params }) {
           </span>
         )}
       </div>
-      {["street", "house", "entrance", "roof", "room"].map((field) => (
+      {["street"].map((field) => (
         <div
           key={field}
           className={`border-b-2 ${
@@ -459,17 +461,7 @@ export default function OrderPage({ params }) {
           } center-row items-center justify-between text-dark py-2 w-full`}
         >
           <span className="text-black font-medium text-sm md:text-base min-w-32">
-            Адрес -{" "}
-            {field === "street"
-              ? "Улица"
-              : field === "house"
-              ? "Дом"
-              : field === "entrance"
-              ? "Подъезд"
-              : field === "roof"
-              ? "Этаж"
-              : "Квартира"}
-            :
+            Адрес
           </span>
           {isEditing ? (
             <input
@@ -754,14 +746,6 @@ export default function OrderPage({ params }) {
             </div>
             <div className="border-b border-dark/50 center-row justify-between text-dark h-8 w-full">
               <span className="text-black font-medium text-sm md:text-base">
-                Язык курьера:
-              </span>
-              <span className="text-violet-500 font-bold">
-                {data?.CourierLang?.nameRu || "Без разницы"}
-              </span>
-            </div>
-            <div className="border-b border-dark/50 center-row justify-between text-dark h-8 w-full">
-              <span className="text-black font-medium text-sm md:text-base">
                 Время доставки:
               </span>
               <span className="text-violet-500 font-bold">
@@ -785,21 +769,35 @@ export default function OrderPage({ params }) {
               <span className="text-black font-medium text-sm md:text-base">
                 Место доставки:
               </span>
-              <span className="text-primary font-bold">Delivery region</span>
+              <span className="text-primary font-bold">
+                {data?.OrderCity?.nameRu || "Нет"}
+              </span>
             </div>
             <div className="border-b border-dark/50 center-row justify-between text-dark h-8 w-full">
               <span className="text-black font-medium text-sm md:text-base">
                 Сумма товаров:
               </span>
               <span className="text-primary font-bold">
-                {parseFloat(data?.sum - data?.payPoints).toFixed(2)} M
+                {parseFloat(data?.sum - data?.payPoints).toFixed(2)} манат
               </span>
             </div>
             <div className="center-row justify-between text-dark h-8 w-full">
               <span className="text-black font-medium text-sm md:text-base">
-                Сумма заказа:
+                Итого к оплате:
               </span>
-              <span className="text-primary font-bold">Order sum</span>
+              <span className="text-primary font-bold">
+                {data?.OrderCity ? (
+                  <>
+                    {(
+                      parseFloat(data?.sum) + Number(data?.OrderCity?.price)
+                    ).toFixed(2)}{" "}
+                    манат
+                  </>
+                ) : (
+                  <>{parseFloat(data?.sum).toFixed(2)}</>
+                )}{" "}
+                манат
+              </span>
             </div>
           </div>
         </div>
@@ -837,45 +835,9 @@ export default function OrderPage({ params }) {
             </p>
           </div>
           <div className="border-b border-black center-row justify-between w-full">
-            <p className="text-black font-bold">Адрес - улица:</p>
+            <p className="text-black font-bold">Адрес:</p>
             <p className="font-bold text-lg text-right line-clamp-6">
               {data?.Address?.street || "Нет"}
-            </p>
-          </div>
-          <div className="border-b border-black center-row justify-between w-full">
-            <p className="text-black font-bold">Адрес - дом:</p>
-            <p className="font-bold text-lg text-right line-clamp-6">
-              {data?.Address?.house || "Нет"}
-            </p>
-          </div>
-          <div className="border-b border-black center-row justify-between w-full">
-            <p className="text-black font-bold line-clamp-6">
-              Адрес - подъезд:
-            </p>
-            <p className="font-bold text-lg text-right">
-              {data?.Address?.entrance || "Нет"}
-            </p>
-          </div>
-          <div className="border-b border-black center-row justify-between w-full">
-            <p className="text-black font-bold line-clamp-6">Адрес - этаж:</p>
-            <p className="font-bold text-lg text-right">
-              {data?.Address?.roof || "Нет"}
-            </p>
-          </div>
-          <div className="border-b border-black center-row justify-between w-full">
-            <p className="text-black font-bold line-clamp-6">
-              Адрес - квартира:
-            </p>
-            <p className="font-bold text-lg text-right">
-              {data?.Address?.room || "Нет"}
-            </p>
-          </div>
-          <div className="border-b border-black center-row justify-between w-full">
-            <p className="text-sm text-black font-bold font-sans">
-              Язык курьера:
-            </p>
-            <p className="font-bold font-sans">
-              {data?.CourierLang?.nameRu || "Нет"}
             </p>
           </div>
           <div className="border-b border-black center-row justify-between w-full">
@@ -982,11 +944,28 @@ export default function OrderPage({ params }) {
               <p className="text-black font-medium font-sans">
                 Стоимость доставки:
               </p>
-              <p className="font-bold text-lg font-sans">Delivery price</p>
+              <p className="font-bold text-lg font-sans">
+                {data?.OrderCity ? (
+                  <>{data?.OrderCity?.price} манат</>
+                ) : (
+                  <>0 манат</>
+                )}
+              </p>
             </div>
             <div className="border-b border-black center-row justify-between ml-auto w-full">
               <p className="text-black font-bold font-sans">Итого к оплате:</p>
-              <p className="font-bold text-lg font-sans">Order sum</p>
+              <p className="font-bold text-lg font-sans">
+                {data?.OrderCity ? (
+                  <>
+                    {(
+                      parseFloat(data?.sum) + Number(data?.OrderCity?.price)
+                    ).toFixed(2)}
+                    {" манат"}
+                  </>
+                ) : (
+                  <>{parseFloat(data?.sum).toFixed(2)} манат</>
+                )}
+              </p>
             </div>
           </div>
         </div>

@@ -12,7 +12,6 @@ const upload = multer({ storage: storage });
 const optimizeAndSaveImage = async (buffer, filename) => {
   const optimizedImagePath = join("uploads/banner/", filename);
   await sharp(buffer, { failOnError: false })
-    .resize(3000)
     .jpeg({ quality: 100 })
     .toFile(optimizedImagePath);
   return optimizedImagePath;
@@ -29,11 +28,11 @@ const fetchAllBanners = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10 } = req.body;
 
   try {
-    const bannersCount = await prisma.banner.count();
+    const bannersCount = await prisma.giftCardMain.count();
     const totalPages = Math.ceil(bannersCount / limit);
     const currentPage = Math.max(1, Math.min(page, totalPages));
 
-    const banners = await prisma.banner.findMany({
+    const banners = await prisma.giftCardMain.findMany({
       skip: (currentPage - 1) * limit,
       take: limit,
       orderBy: { order: "asc" },
@@ -70,7 +69,7 @@ const fetchAllBanners = asyncHandler(async (req, res) => {
 
 const fetchActiveBanners = asyncHandler(async (req, res) => {
   try {
-    const banners = await prisma.banner.findMany({
+    const banners = await prisma.giftCardMain.findMany({
       where: {
         isActive: true,
         startDate: { lte: new Date() },
@@ -96,8 +95,12 @@ const fetchActiveBanners = asyncHandler(async (req, res) => {
         timeFormat
       );
 
+      const { image, link, ...rest } = banner;
+
       return {
-        ...banner,
+        ...rest,
+        imageOne: image,
+        currentSellPrice: Number(link),
         createdAt: formattedCreatedAt,
         updatedAt: formattedUpdatedAt,
       };
@@ -113,20 +116,12 @@ const fetchBannerById = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
   try {
-    const banner = await prisma.banner.findUnique({
+    const banner = await prisma.giftCardMain.findUnique({
       where: { id: Number(id) },
       include: {
         Product: true,
-        Category: {
-          include: {
-            SubCategories: true,
-          },
-        },
-        SubCategory: {
-          include: {
-            Segments: true,
-          },
-        },
+        Category: true,
+        SubCategory: true,
         Segment: true,
         Brand: true,
       },
@@ -137,6 +132,7 @@ const fetchBannerById = asyncHandler(async (req, res) => {
     }
 
     let arrayOfProducts = [];
+
     if (banner.ProductsArray && banner.ProductsArray.length > 0) {
       arrayOfProducts = await prisma.product.findMany({
         where: {
@@ -168,8 +164,12 @@ const fetchBannerById = asyncHandler(async (req, res) => {
       });
     }
 
+    const { image, link, ...rest } = banner;
+
     const result = {
-      ...banner,
+      ...rest,
+      imageOne: image,
+      currentSellPrice: Number(link),
       arrayOfProducts,
     };
 
@@ -188,31 +188,13 @@ const newBanner = asyncHandler(async (req, res) => {
     order,
     startDate,
     endDate,
+    link,
     isActive,
-    categoryId,
-    subCategoryId,
-    segmentId,
-    brandId,
-    productBarcode,
-    productsArray = [],
-    videoDuration,
     headerTm,
     headerRu,
-    descriptionTm,
-    descriptionRu,
+    productsArray = [],
+    videoDuration,
   } = req.body;
-
-  const getNullOrValue = (value) =>
-    value === "null" || value === "" ? null : value;
-
-  let idToInclude =
-    getNullOrValue(productBarcode) ||
-    getNullOrValue(categoryId) ||
-    getNullOrValue(subCategoryId) ||
-    getNullOrValue(segmentId) ||
-    getNullOrValue(brandId);
-
-  let url = idToInclude ? idToInclude : null;
 
   let bannerImage = null;
   let bannerVideo = null;
@@ -254,12 +236,10 @@ const newBanner = asyncHandler(async (req, res) => {
     order: Number(order),
     headerTm,
     headerRu,
-    descriptionTm,
-    descriptionRu,
+    link: link,
     videoDuration,
     isActive: JSON.parse(isActive),
-    ProductsArray: JSON.parse(productsArray),
-    link: url,
+    ProductsArray: ["hello"],
     image: bannerImage,
     video: bannerVideo,
     mobileImage: mobileImage,
@@ -268,19 +248,8 @@ const newBanner = asyncHandler(async (req, res) => {
     endDate: endDate ? new Date(endDate) : null,
   };
 
-  if (productBarcode && productBarcode !== "null")
-    bannerData.Product = { connect: { barcode: productBarcode } };
-  if (categoryId && categoryId !== "null")
-    bannerData.Category = { connect: { id: categoryId } };
-  if (subCategoryId && subCategoryId !== "null")
-    bannerData.SubCategory = { connect: { id: subCategoryId } };
-  if (segmentId && segmentId !== "null")
-    bannerData.Segment = { connect: { id: segmentId } };
-  if (brandId && brandId !== "null")
-    bannerData.Brand = { connect: { id: brandId } };
-
   try {
-    await prisma.banner.create({ data: bannerData });
+    await prisma.giftCardMain.create({ data: bannerData });
     res.status(201).json({ message: "Баннер успешно создан." });
   } catch (err) {
     console.log(err);
@@ -295,6 +264,9 @@ const updateBanner = asyncHandler(async (req, res) => {
     name,
     order,
     isActive,
+    headerTm,
+    headerRu,
+    link,
     productBarcode,
     categoryId,
     subCategoryId,
@@ -302,34 +274,17 @@ const updateBanner = asyncHandler(async (req, res) => {
     brandId,
     startDate,
     endDate,
-    productsArray,
     videoDuration,
-    headerTm,
-    headerRu,
-    descriptionTm,
-    descriptionRu,
   } = req.body;
 
-  const getNullOrValue = (value) =>
-    value === "null" || value === "" ? null : value;
-
   try {
-    const existingBanner = await prisma.banner.findUnique({
+    const existingBanner = await prisma.giftCardMain.findUnique({
       where: { id: Number(id) },
     });
 
     if (!existingBanner) {
       return res.status(404).json({ message: "Баннер не найден." });
     }
-
-    let idToInclude =
-      getNullOrValue(productBarcode) ||
-      getNullOrValue(categoryId) ||
-      getNullOrValue(subCategoryId) ||
-      getNullOrValue(segmentId) ||
-      getNullOrValue(brandId);
-
-    let url = idToInclude ? idToInclude : null;
 
     let bannerImage = existingBanner.image;
     let bannerVideo = existingBanner.video;
@@ -370,17 +325,13 @@ const updateBanner = asyncHandler(async (req, res) => {
       name: getNullOrValue(name) || existingBanner.name,
       headerTm: headerTm || existingBanner.headerTm,
       headerRu: headerRu || existingBanner.headerRu,
-      descriptionTm: descriptionTm || existingBanner.descriptionTm,
-      descriptionRu: descriptionRu || existingBanner.descriptionRu,
       order: order ? Number(order) : existingBanner.order,
       isActive: isActive ? JSON.parse(isActive) : existingBanner.isActive,
       videoDuration: videoDuration
         ? videoDuration
         : existingBanner.videoDuration,
-      ProductsArray: productsArray
-        ? JSON.parse(productsArray)
-        : existingBanner.ProductsArray,
-      link: url !== null ? url : existingBanner.link,
+      ProductsArray: ["hello"],
+      link: link || existingBanner.link,
       startDate: startDate ? new Date(startDate) : existingBanner.startDate,
       endDate: endDate ? new Date(endDate) : existingBanner.endDate,
       image: bannerImage,
@@ -419,7 +370,7 @@ const updateBanner = asyncHandler(async (req, res) => {
       newBannerData.Brand = { disconnect: true };
     }
 
-    await prisma.banner.update({
+    await prisma.giftCardMain.update({
       where: { id: Number(id) },
       data: newBannerData,
     });
@@ -435,7 +386,7 @@ const deleteBanner = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
   try {
-    const banner = await prisma.banner.delete({
+    const banner = await prisma.giftCardMain.delete({
       where: { id: Number(id) },
     });
     return banner

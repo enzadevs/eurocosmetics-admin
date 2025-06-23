@@ -1,11 +1,11 @@
 "use client";
 
+import clsx from "clsx";
 import Image from "next/image";
+import BackForthButtons from "@/components/nav/BackForthButtons";
 import CategoryPicker from "@/components/pickers/CategoryPicker";
 import SubCategoryPicker from "@/components/pickers/SubCategoryPicker";
 import SegmentPicker from "@/components/pickers/SegmentPicker";
-import ProductPicker from "@/components/pickers/ProductPicker";
-import BackForthButtons from "@/components/nav/BackForthButtons";
 import ProductsList from "@/components/tables/ProductsList";
 import * as NProgress from "nprogress";
 import { newAction } from "@/components/utils/ActionLogs";
@@ -14,26 +14,19 @@ import { apiUrl } from "@/components/utils/utils";
 import { SuccessToast, ErrorToast } from "@/components/utils/utils";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { useState, useEffect, useRef } from "react";
-import { Switch } from "@headlessui/react";
-import { Save, Trash2, ImagePlus } from "lucide-react";
+import { useState, useRef } from "react";
+import { Switch, Field, Textarea, Description } from "@headlessui/react";
+import { PlusIcon, ImagePlus } from "lucide-react";
 
-const fetchBannerData = async (id) => {
-  const response = await fetch(`${apiUrl}/banners/fetch/${id}`);
-  const data = await response.json();
-  return data;
-};
-
-export default function UpdateBannerPage({ params }) {
-  const [bannerData, setBannerData] = useState([]);
+export default function NewBannerPage() {
   const [selectedImage, setSelectedImage] = useState();
   const [selectedMobileImage, setSelectedMobileImage] = useState();
-  const [isActive, setIsActive] = useState(false);
+  const [isActive, setIsActive] = useState(true);
+  const { register, handleSubmit } = useForm();
   const [productsArray, setProductsArray] = useState([]);
   const [selectedVideo, setSelectedVideo] = useState();
   const [selectedMobileVideo, setSelectedMobileVideo] = useState();
   const [videoDuration, setVideoDuration] = useState(null);
-  const { register, handleSubmit } = useForm();
   const categoryIdRef = useRef(null);
   const subCategoryIdRef = useRef(null);
   const segmentIdRef = useRef(null);
@@ -41,35 +34,24 @@ export default function UpdateBannerPage({ params }) {
   const router = useRouter();
   const { admin } = useAdminStore();
 
-  useEffect(() => {
-    const getBannerData = async () => {
-      const response = await fetchBannerData(params.id);
-      setBannerData(response);
-      setIsActive(response?.isActive);
-      setProductsArray(response?.ProductsArray || "");
-    };
+  const createBannerRequest = async (data) => {
+    // if (
+    //   (selectedImage || selectedMobileImage) &&
+    //   (selectedVideo || selectedMobileVideo)
+    // ) {
+    //   ErrorToast({
+    //     errorText: "Выберите либо изображения , либо видео .",
+    //   });
+    //   return;
+    // }
 
-    getBannerData();
-  }, [params.id]);
-
-  const updateData = async (data) => {
-    if (
-      (selectedImage || selectedMobileImage) &&
-      (selectedVideo || selectedMobileVideo)
-    ) {
-      ErrorToast({
-        errorText: "Выберите либо изображения , либо видео .",
-      });
-      return;
-    }
-
-    const selectedOptions = [
+    const selectedLinkOptions = [
       categoryIdRef.current,
       subCategoryIdRef.current,
       segmentIdRef.current,
     ].filter(Boolean);
 
-    if (selectedOptions.length > 1) {
+    if (selectedLinkOptions.length > 1) {
       ErrorToast({
         errorText:
           "Выберите только категорию, подкатегорию, сегмент или товар чтобы прикрепить ссылку.",
@@ -77,26 +59,35 @@ export default function UpdateBannerPage({ params }) {
       return;
     }
 
+    if (!data.startDate) {
+      ErrorToast({ errorText: "Пожалуйста, введите дату начала." });
+      return;
+    }
+
+    if (!data.endDate) {
+      ErrorToast({ errorText: "Пожалуйста, введите дату окончания." });
+      return;
+    }
+
+    if (!selectedImage) {
+      ErrorToast({ errorText: "Пожалуйста, загрузите изображение." });
+      return;
+    }
+
     try {
       const formData = new FormData();
-      formData.append("headerTm", data.headerTm || bannerData?.headerTm);
-      formData.append("headerRu", data.headerRu || bannerData?.headerRu);
-      formData.append(
-        "descriptionTm",
-        data.descriptionTm || bannerData?.descriptionTm
-      );
-      formData.append(
-        "descriptionRu",
-        data.descriptionRu || bannerData?.descriptionRu
-      );
-      formData.append("order", data.order || bannerData?.order);
+      formData.append("headerTm", data.headerTm);
+      formData.append("headerRu", data.headerRu);
+      formData.append("descriptionTm", data.descriptionTm);
+      formData.append("descriptionRu", data.descriptionRu);
+      formData.append("contentTm", data.descriptionTm);
+      formData.append("contentRu", data.descriptionRu);
+      formData.append("blogerName", "");
+      formData.append("order", data.order);
       formData.append("isActive", isActive);
-      formData.append("startDate", data.startDate || bannerData?.startDate);
-      formData.append("endDate", data.endDate || bannerData?.endDate);
-
-      if (selectedImage) {
-        formData.append("image", selectedImage);
-      }
+      formData.append("image", selectedImage);
+      formData.append("startDate", data.startDate);
+      formData.append("endDate", data.endDate);
 
       if (selectedVideo) {
         formData.append("video", selectedVideo);
@@ -134,7 +125,6 @@ export default function UpdateBannerPage({ params }) {
       } else {
         formData.append("productsArray", null);
       }
-
       if (categoryIdRef.current) {
         formData.append("categoryId", categoryIdRef.current);
       }
@@ -148,58 +138,29 @@ export default function UpdateBannerPage({ params }) {
         formData.append("productBarcode", productBarcodeRef.current);
       }
 
-      const response = await fetch(
-        `${apiUrl}/banners/update/${Number(params.id)}`,
-        {
-          method: "PATCH",
-          body: formData,
-        }
-      );
+      const response = await fetch(`${apiUrl}/minitwo/new`, {
+        method: "POST",
+        body: formData,
+      });
 
       if (response.ok) {
-        SuccessToast({ successText: "Баннер обновлен." });
+        SuccessToast({ successText: "Добавлен совет." });
 
         newAction(
           admin?.user?.Role,
           admin?.user?.username,
-          `Обновил баннер с ID : ${params.id}`,
-          "UPDATE"
+          `Создал новый совет : ${data.name}`,
+          "CREATE"
         );
 
         NProgress.start();
-        router.push("/home/banners");
+        router.push("/home/minitwo");
       } else {
         const data = await response.json();
         ErrorToast({ errorText: data.message });
       }
     } catch (err) {
       console.log(err);
-    }
-  };
-
-  const handleDelete = async () => {
-    try {
-      const response = await fetch(`${apiUrl}/banners/delete/${params.id}`, {
-        method: "DELETE",
-      });
-
-      if (response.ok) {
-        SuccessToast({ successText: "Баннер удален." });
-        NProgress.start();
-        router.push("/home/banners");
-      } else {
-        const data = await response.json();
-        ErrorToast({ errorText: data.message });
-      }
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  const confirmDelete = (event) => {
-    event.preventDefault();
-    if (window.confirm(`Вы уверены, что хотите удалить баннер?`)) {
-      handleDelete();
     }
   };
 
@@ -266,20 +227,30 @@ export default function UpdateBannerPage({ params }) {
     <div className="flex flex-col">
       <div className="center-row h-12">
         <BackForthButtons />
-        <h2 className="ml-auto md:ml-0">Обновить баннер</h2>
+        <h2 className="ml-auto md:ml-0">Новый совет</h2>
       </div>
       <div className="center-col w-full">
         <div className="dark:bg-darkTwo w-full max-w-3xl">
           <form
-            onSubmit={handleSubmit(updateData)}
+            onSubmit={handleSubmit(createBannerRequest)}
             className="form-holder mb-2"
           >
+            <div className="center-row gap-1 w-full">
+              <p className="min-w-24 md:min-w-32">Номер:</p>
+              <input
+                type="number"
+                className="input-primary px-2 w-full"
+                defaultValue=""
+                placeholder="Номер"
+                {...register("order")}
+              />
+            </div>
             <div className="center-row gap-1 w-full">
               <p className="min-w-24 md:min-w-32">Оглавление (тм):</p>
               <input
                 type="text"
                 className="input-primary px-2 w-full"
-                defaultValue={bannerData?.headerTm || ""}
+                defaultValue=""
                 placeholder="Оглавление (тм)"
                 {...register("headerTm")}
               />
@@ -289,7 +260,7 @@ export default function UpdateBannerPage({ params }) {
               <input
                 type="text"
                 className="input-primary px-2 w-full"
-                defaultValue={bannerData?.headerRu || ""}
+                defaultValue=""
                 placeholder="Оглавление (ру)"
                 {...register("headerRu")}
               />
@@ -299,7 +270,7 @@ export default function UpdateBannerPage({ params }) {
               <input
                 type="text"
                 className="input-primary px-2 w-full"
-                defaultValue={bannerData?.descriptionTm || ""}
+                defaultValue=""
                 placeholder="Описание (тм)"
                 {...register("descriptionTm")}
               />
@@ -309,49 +280,68 @@ export default function UpdateBannerPage({ params }) {
               <input
                 type="text"
                 className="input-primary px-2 w-full"
-                defaultValue={bannerData?.descriptionRu || ""}
+                defaultValue=""
                 placeholder="Описание (ру)"
                 {...register("descriptionRu")}
               />
             </div>
-            <div className="center-row gap-1 w-full">
-              <p className="min-w-24 md:min-w-32">Номер:</p>
-              <input
-                type="number"
-                className="input-primary px-2 w-full"
-                defaultValue={bannerData?.order || ""}
-                placeholder="Номер"
-                {...register("order")}
+            <Field className="flex flex-col w-full">
+              <Description className="min-w-32">
+                Отзыв блогера (тм.):
+              </Description>
+              <Textarea
+                {...register("contentTm")}
+                className={clsx(
+                  "bg-white dark:bg-darkTwo basic-border-2 rounded text-dark dark:text-support block resize-y transition-all py-2 px-2 min-h-14 w-full",
+                  "data-[focus]:outline-2 data-[focus]:-outline-offset-2 data-[focus]:outline-primary"
+                )}
+                placeholder="Отзыв (тм.)"
+                defaultValue=""
+                rows={3}
               />
-            </div>
+            </Field>
+            <Field className="flex flex-col w-full">
+              <Description className="min-w-32">
+                Отзыв блогера (ру):
+              </Description>
+              <Textarea
+                {...register("contentRu")}
+                className={clsx(
+                  "bg-white dark:bg-darkTwo basic-border-2 rounded text-dark dark:text-support block resize-y transition-all py-2 px-2 min-h-14 w-full",
+                  "data-[focus]:outline-2 data-[focus]:-outline-offset-2 data-[focus]:outline-primary"
+                )}
+                placeholder="Отзыв (ру)"
+                defaultValue=""
+                rows={3}
+              />
+            </Field>
             <div className="center-row gap-1 w-full">
-              <p className="min-w-24 md:min-w-32">Дата начала:</p>
+              <p className="min-w-24 md:min-w-32">
+                <span className="text-red-500 font-bold">* </span>
+                Дата начала:
+              </p>
               <input
                 type="date"
                 className="input-primary px-2 w-full"
-                defaultValue={
-                  bannerData?.startDate
-                    ? new Date(bannerData.startDate).toISOString().split("T")[0]
-                    : ""
-                }
+                defaultValue=""
                 placeholder="Дата начала"
                 {...register("startDate")}
               />
             </div>
             <div className="center-row gap-1 w-full">
-              <p className="min-w-24 md:min-w-32">Дата окончания:</p>
+              <p className="min-w-24 md:min-w-32">
+                <span className="text-red-500 font-bold">* </span>Дата
+                окончания:
+              </p>
               <input
                 type="date"
                 className="input-primary px-2 w-full"
-                defaultValue={
-                  bannerData?.endDate
-                    ? new Date(bannerData.endDate).toISOString().split("T")[0]
-                    : ""
-                }
+                defaultValue=""
                 placeholder="Дата окончания"
                 {...register("endDate")}
               />
             </div>
+
             <div className="bg-blue-200 dark:bg-dark rounded p-2 w-full">
               <p>
                 Выберите одну из опций: категорию, подкатегорию или сегмент,
@@ -360,45 +350,17 @@ export default function UpdateBannerPage({ params }) {
             </div>
             <div className="center-row gap-1 w-full">
               <p className="min-w-24 md:min-w-32">Категория:</p>
-              <CategoryPicker
-                passedProp={categoryIdRef}
-                data={
-                  bannerData?.link === bannerData?.Category?.id
-                    ? bannerData?.Category
-                    : {}
-                }
-              />
+              <CategoryPicker passedProp={categoryIdRef} data={{}} />
             </div>
             <div className="center-row gap-1 w-full">
               <p className="min-w-24 md:min-w-32">Подкатегория:</p>
-              <SubCategoryPicker
-                passedProp={subCategoryIdRef}
-                data={
-                  bannerData?.link === bannerData?.SubCategory?.id
-                    ? bannerData?.SubCategory
-                    : {}
-                }
-              />
+              <SubCategoryPicker passedProp={subCategoryIdRef} data={{}} />
             </div>
             <div className="center-row gap-1 w-full">
               <p className="min-w-24 md:min-w-32">Сегмент:</p>
-              <SegmentPicker
-                passedProp={segmentIdRef}
-                data={
-                  bannerData?.link === bannerData?.Segment?.id
-                    ? bannerData?.Segment
-                    : {}
-                }
-              />
+              <SegmentPicker passedProp={segmentIdRef} data={{}} />
             </div>
-            <ProductPicker
-              passedProp={productBarcodeRef}
-              data={
-                bannerData?.link === bannerData?.Product?.barcode
-                  ? bannerData?.Product
-                  : {}
-              }
-            />
+            {/* <ProductPicker passedProp={productBarcodeRef} data={{}} /> */}
             <div label="Hashtags" className="center-row gap-1 w-full">
               <p className="min-w-24 md:min-w-32">Список товаров</p>
               <input
@@ -431,17 +393,7 @@ export default function UpdateBannerPage({ params }) {
                     </div>
                   ) : (
                     <div className="rounded center-col relative h-52 max-h-52 w-full">
-                      {bannerData?.image ? (
-                        <img
-                          src={apiUrl + "/" + bannerData.image}
-                          alt="image of banner"
-                          className="rounded object-contain h-full w-full"
-                          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw"
-                          crossOrigin="anonymous"
-                        />
-                      ) : (
-                        <ImagePlus className="text-dark dark:text-support size-10" />
-                      )}
+                      <ImagePlus className="text-dark dark:text-support size-10" />
                     </div>
                   )}
                   <input
@@ -470,16 +422,7 @@ export default function UpdateBannerPage({ params }) {
                     />
                   ) : (
                     <div className="rounded center-col relative h-52 max-h-52 w-full">
-                      {bannerData?.video ? (
-                        <video
-                          className="rounded object-contain w-full max-h-52"
-                          controls
-                          src={apiUrl + "/" + bannerData.video}
-                          crossOrigin="anonymous"
-                        />
-                      ) : (
-                        <ImagePlus className="text-dark dark:text-support size-10" />
-                      )}
+                      <ImagePlus className="text-dark dark:text-support size-10" />
                     </div>
                   )}
                   <input
@@ -493,8 +436,6 @@ export default function UpdateBannerPage({ params }) {
                 </div>
               </div>
             </div>
-
-            {/* Mobile Media Section */}
             <div className="w-full">
               <h3 className="text-lg font-semibold mb-2">
                 Медиа для мобильных устройств
@@ -517,17 +458,7 @@ export default function UpdateBannerPage({ params }) {
                     </div>
                   ) : (
                     <div className="rounded center-col relative h-52 max-h-52 w-full">
-                      {bannerData?.mobileImage ? (
-                        <img
-                          src={apiUrl + "/" + bannerData.mobileImage}
-                          alt="mobile image of banner"
-                          className="rounded object-contain h-full w-full"
-                          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw"
-                          crossOrigin="anonymous"
-                        />
-                      ) : (
-                        <ImagePlus className="text-dark dark:text-support size-10" />
-                      )}
+                      <ImagePlus className="text-dark dark:text-support size-10" />
                     </div>
                   )}
                   <input
@@ -549,16 +480,7 @@ export default function UpdateBannerPage({ params }) {
                     />
                   ) : (
                     <div className="rounded center-col relative h-52 max-h-52 w-full">
-                      {bannerData?.mobileVideo ? (
-                        <video
-                          className="rounded object-contain w-full max-h-52"
-                          controls
-                          src={apiUrl + "/" + bannerData.mobileVideo}
-                          crossOrigin="anonymous"
-                        />
-                      ) : (
-                        <ImagePlus className="text-dark dark:text-support size-10" />
-                      )}
+                      <ImagePlus className="text-dark dark:text-support size-10" />
                     </div>
                   )}
                   <input
@@ -574,7 +496,7 @@ export default function UpdateBannerPage({ params }) {
             </div>
             <div className="flex flex-row mb-2 gap-2 w-full">
               <div className="bg-white dark:bg-dark basic-border-2 center-row gap-4 p-2 h-9 md:h-10 w-full">
-                <p className="w-32">Баннер активен:</p>
+                <p className="w-32">Совет активен:</p>
                 <Switch
                   checked={isActive}
                   onChange={() => {
@@ -588,23 +510,12 @@ export default function UpdateBannerPage({ params }) {
                   />
                 </Switch>
               </div>
-              <div className="center-row gap-1 w-full">
-                <button className="btn-primary center-row justify-center gap-2 px-4 w-full">
-                  <Save className="size-5" />
-                  <span className="font-semibold text-sm md:text-base">
-                    Сохранить
-                  </span>
-                </button>
-                <button
-                  onClick={(event) => confirmDelete(event)}
-                  className="btn-primary center-row justify-center gap-2 px-4 w-full"
-                >
-                  <Trash2 className="size-5" />
-                  <span className="font-semibold text-sm md:text-base">
-                    Удалить
-                  </span>
-                </button>
-              </div>
+              <button className="btn-primary center-row justify-center gap-2 px-4 w-full">
+                <PlusIcon className="size-5" />
+                <span className="font-semibold text-sm md:text-base">
+                  Добавить
+                </span>
+              </button>
             </div>
           </form>
 

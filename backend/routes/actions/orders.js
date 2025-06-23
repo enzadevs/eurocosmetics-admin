@@ -619,6 +619,8 @@ const newOrder = asyncHandler(async (req, res) => {
     address,
   } = req.body;
 
+  console.log(req.body);
+
   try {
     if (customerId) {
       const user = await prisma.customer.findUnique({
@@ -704,7 +706,6 @@ const newOrder = asyncHandler(async (req, res) => {
     let orderData = {
       phoneNumber,
       comment,
-      address,
       sum: calculatedSum,
       pointsEarned: customerId ? Number(pointsEarned) : 0,
       payPoints: actualPayPoints,
@@ -734,7 +735,7 @@ const newOrder = asyncHandler(async (req, res) => {
     if (address) {
       const newAddress = await prisma.address.create({
         data: {
-          street: address,
+          street: address || "",
           house: address.house || "",
           entrance: address.entrance || "",
           roof: address.roof || "",
